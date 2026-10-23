@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alcovia GTM tracker</title><meta name="description" content="Revenue, funnel, campaign performance and RCA with a timeline selector. Dummy data.">
+<style>:root{color-scheme:light;--bg:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--border:rgba(11,11,11,.10);--wash:rgba(11,11,11,.05);
+--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--track:#cde2fb;--good:#0ca30c;--goodtext:#006300;--warn:#fab219;--serious:#ec835a;--crit:#d03b3b;--crittext:#a62a2a;
+--r250:#86b6ef;--r300:#6da7ec;--r350:#5598e7;--r400:#3987e5;--r450:#2a78d6;--r500:#256abf;--r550:#1c5cab;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);--wash:rgba(255,255,255,.06);
+--s1:#3987e5;--s2:#d95926;--s3:#199e70;--track:#0d366b;--good:#0ca30c;--goodtext:#0ca30c;--warn:#fab219;--serious:#ec835a;--crit:#d03b3b;--crittext:#e66767;
+--r250:#86b6ef;--r300:#6da7ec;--r350:#5598e7;--r400:#3987e5;--r450:#2a78d6;--r500:#256abf;--r550:#1c5cab;}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);--wash:rgba(255,255,255,.06);
+--s1:#3987e5;--s2:#d95926;--s3:#199e70;--track:#0d366b;--good:#0ca30c;--goodtext:#0ca30c;--warn:#fab219;--serious:#ec835a;--crit:#d03b3b;--crittext:#e66767;
+--r250:#86b6ef;--r300:#6da7ec;--r350:#5598e7;--r400:#3987e5;--r450:#2a78d6;--r500:#256abf;--r550:#1c5cab;}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px 56px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:20px 0 12px}
+header.top h1{font-size:20px;margin:0;font-weight:650;letter-spacing:-.01em}
+header.top .sub{color:var(--ink2);font-size:13px;margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--ink2);background:var(--surface)}
+.icon-btn{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--ink2)}
+.icon-btn:hover,.seg button:hover,.tabs button:hover{background:var(--wash)}
+.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 0 14px;border-bottom:1px solid var(--grid);margin-bottom:16px}
+.filters label{font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:8px}
+select.sel{appearance:none;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23898781' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;border:1px solid var(--border);border-radius:8px;padding:7px 28px 7px 10px;cursor:pointer;color:var(--ink)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px}
+.tabs button{border:0;background:transparent;padding:8px 14px;border-radius:8px;cursor:pointer;color:var(--ink2);font-weight:550}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--border)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:5px 11px;cursor:pointer;color:var(--ink2);font-size:12px}
+.seg button[aria-pressed="true"]{background:var(--wash);color:var(--ink);font-weight:600}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.tiles{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:0}
+.card h2{font-size:14px;margin:0;font-weight:650}
+.card .csub{color:var(--ink2);font-size:12px;margin-top:2px}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.sec{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px;font-weight:650}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;min-width:0}
+.tile .l{font-size:12px;color:var(--ink2)}
+.tile .v{font-size:24px;font-weight:650;margin-top:2px;letter-spacing:-.01em}
+.d{font-size:12px;margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;color:var(--ink2)}
+.tile svg{display:block;margin-top:6px}
+.hero{font-size:52px;font-weight:650;letter-spacing:-.02em;line-height:1.05}
+.hero small{font-size:16px;color:var(--ink2);font-weight:500;letter-spacing:0}
+.up-good{color:var(--goodtext)}.dn-bad{color:var(--crittext)}.neutral{color:var(--ink2)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--ink2);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.meter{height:10px;border-radius:6px;background:var(--track);position:relative;overflow:visible}
+.meter>b{position:absolute;left:0;top:0;bottom:0;border-radius:6px;display:block}
+.meter>u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink2);text-decoration:none}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-weight:600;text-align:left;color:var(--ink2);font-size:12px;padding:6px 10px 6px 0;border-bottom:1px solid var(--grid);white-space:nowrap}
+td{padding:8px 10px 8px 0;border-bottom:1px solid var(--grid);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+th+th,td+td{padding-left:14px}
+th:last-child,td:last-child{padding-right:0}
+.tw{overflow-x:auto}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap}
+.badge .ic{display:inline-flex;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;font-size:10px;color:#fff;line-height:1}
+.ic.good{background:var(--good)}.ic.warn{background:#b7791f}.ic.crit{background:var(--crit)}.ic.mute{background:var(--muted)}.ic.info{background:var(--s1)}
+.note{font-size:12px;color:var(--ink2);margin-top:10px}
+.tip{position:fixed;z-index:50;display:none;pointer-events:none;background:var(--surface);border:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.14);border-radius:8px;padding:8px 10px;font-size:12px;min-width:140px;max-width:260px}
+.tip-t{color:var(--ink2);margin-bottom:4px}
+.tip-r{display:flex;align-items:center;gap:6px;line-height:1.6}
+.tip-k{width:10px;height:3px;border-radius:2px;display:inline-block}
+.tip-l{color:var(--ink2)}
+.tip-r strong{min-width:52px}
+svg text{font-family:inherit}
+.ax{fill:var(--muted);font-size:11px}
+.lab{fill:var(--ink2);font-size:12px}
+.val{fill:var(--ink);font-size:12px;font-weight:600}
+.faded{opacity:.55;transition:opacity .15s}
+.empty{color:var(--ink2);padding:18px 0;font-size:13px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--grid);font-size:13px}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--ink2)}
+.list{margin:0;padding:0;list-style:none}
+.list li{padding:8px 0;border-bottom:1px solid var(--grid);display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+.list li:last-child{border-bottom:0}
+.back{border:0;background:transparent;color:var(--ink2);cursor:pointer;padding:4px 0;margin-bottom:8px;font-size:13px}
+.back:hover{color:var(--ink)}
+.clickable{cursor:pointer}
+.clickable:hover{border-color:var(--axis)}
+.clickable:focus-visible,.seg button:focus-visible,.tabs button:focus-visible,.back:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+@media (max-width:560px){.hero{font-size:40px}.two{grid-template-columns:1fr}}
+@media (forced-colors:active){.meter>b{forced-color-adjust:none}}
+</style></head>
+<body><div class="wrap" id="app"></div>
+<script>const NS='http://www.w3.org/2000/svg';
+function setAttrs(e,a){for(const k in (a||{})){const v=a[k];if(v==null||v===false)continue;
+ if(k==='class')e.setAttribute('class',v);else if(k==='text')e.textContent=v;
+ else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);
+ else if(k==='style'&&typeof v==='object')Object.assign(e.style,v);else e.setAttribute(k,v);}}
+function add(e,kids){for(const k of kids.flat(Infinity)){if(k==null||k===false)continue;e.append(k.nodeType?k:document.createTextNode(String(k)));}}
+function h(tag,attrs,...kids){const e=document.createElement(tag);setAttrs(e,attrs);add(e,kids);return e;}
+function s(tag,attrs,...kids){const e=document.createElementNS(NS,tag);setAttrs(e,attrs);add(e,kids);return e;}
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* formatting */
+const nf=new Intl.NumberFormat('en-IN');
+const fmtN=n=>nf.format(Math.round(n));
+function fmtINR(n){const a=Math.abs(n);if(a>=1e7)return '₹'+(n/1e7).toFixed(2)+' Cr';if(a>=1e5)return '₹'+(n/1e5).toFixed(1)+' L';if(a>=1e4)return '₹'+(n/1e3).toFixed(0)+'K';return '₹'+fmtN(n);}
+const pct=(x,d=1)=>(x*100).toFixed(d)+'%';
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtD=d=>d.getDate()+' '+MON[d.getMonth()];
+function compactTick(v){if(v>=1e7)return (v/1e7)+'Cr';if(v>=1e5)return (v/1e5)+'L';if(v>=1e3)return (v/1e3)+'K';return String(v);}
+function niceMax(v){if(!(v>0))return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const f=v/p;const n=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10;return n*p;}
+
+/* tooltip: values lead, labels follow; textContent only */
+const tip=h('div',{class:'tip',role:'status'});document.body.append(tip);
+function moveTip(e){const pad=14;let x=e.clientX+pad,y=e.clientY+pad;const r=tip.getBoundingClientRect();
+ if(x+r.width>innerWidth-8)x=e.clientX-r.width-pad;if(y+r.height>innerHeight-8)y=e.clientY-r.height-pad;
+ tip.style.left=Math.max(8,x)+'px';tip.style.top=Math.max(8,y)+'px';}
+function showTip(e,title,rows){tip.replaceChildren(h('div',{class:'tip-t'},title));
+ rows.forEach(r=>tip.append(h('div',{class:'tip-r'},r.color?h('span',{class:'tip-k',style:{background:r.color}}):null,h('strong',{},r.value),h('span',{class:'tip-l'},r.label||''))));
+ tip.style.display='block';moveTip(e);}
+function hideTip(){tip.style.display='none';}
+function hover(node,title,rows){const f=e=>showTip(e,typeof title==='function'?title():title,typeof rows==='function'?rows():rows);
+ node.addEventListener('pointerenter',f);node.addEventListener('pointermove',moveTip);node.addEventListener('pointerleave',hideTip);
+ node.addEventListener('focus',()=>{const r=node.getBoundingClientRect();f({clientX:r.left+r.width/2,clientY:r.top});});
+ node.addEventListener('blur',hideTip);node.setAttribute('tabindex','0');}
+
+/* responsive svg: redraw at the container's real width */
+function responsive(draw){const box=h('div',{style:{width:'100%'}});let last=0;
+ const go=()=>{const w=Math.floor(box.clientWidth);if(!w||w===last)return;last=w;box.replaceChildren(draw(w));};
+ if(window.ResizeObserver)new ResizeObserver(go).observe(box);else addEventListener('resize',go);
+ requestAnimationFrame(go);return box;}
+
+function barPath(x,y,w,hh,r){if(hh<=0)return '';r=Math.min(r,w/2,hh);return `M${x},${y+hh}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+hh}Z`;}
+function hPath(x,y,w,hh,r){if(w<=0)return '';r=Math.min(r,hh/2,w);return `M${x},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+hh-r}Q${x+w},${y+hh} ${x+w-r},${y+hh}H${x}Z`;}
+
+/* horizontal bars: rows [{label,value,color,text,tipTitle,tipRows,sub}] */
+function hbars(rows,width,o){o=o||{};const labelW=o.labelW||Math.min(190,Math.round(width*.38)),rightW=o.rightW||90,bh=o.bh||18,gap=o.gap||12;
+ const max=o.max||Math.max(...rows.map(r=>r.value))||1;const H=rows.length*(bh+gap)+6;const pw=Math.max(40,width-labelW-rightW);
+ const svg=s('svg',{width,height:H,role:'img','aria-label':o.aria||'Bar chart'});
+ rows.forEach((r,i)=>{const y=i*(bh+gap)+4;const g=s('g',{});
+  g.append(s('text',{x:0,y:y+bh/2+4,class:'lab'},r.label.length>34&&labelW<200?r.label.slice(0,32)+'…':r.label));
+  g.append(s('line',{x1:labelW,x2:labelW,y1:y-3,y2:y+bh+3,stroke:cssv('--axis')}));
+  const w=Math.max(0,r.value/max*pw);
+  g.append(s('path',{d:hPath(labelW,y,w,bh,4),fill:r.color||cssv('--s1')}));
+  g.append(s('text',{x:labelW+w+8,y:y+bh/2+4,class:'val'},r.text));
+  const hit=s('rect',{x:0,y:y-gap/2,width,height:bh+gap,fill:'transparent'});if(r.tipRows)hover(hit,r.tipTitle||r.label,r.tipRows);g.append(hit);svg.append(g);});
+ return svg;}
+
+/* sparkline: de-emphasis gray, current point in accent */
+function spark(vals,w,hh){w=w||110;hh=hh||26;const mx=Math.max(...vals),mn=Math.min(...vals);const rg=(mx-mn)||1;
+ const pts=vals.map((v,i)=>[2+i*(w-8)/(Math.max(vals.length-1,1)),hh-4-(v-mn)/rg*(hh-8)]);
+ const svg=s('svg',{width:w,height:hh,'aria-hidden':'true'});
+ svg.append(s('polyline',{points:pts.map(p=>p.join(',')).join(' '),fill:'none',stroke:cssv('--muted'),'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+ const l=pts[pts.length-1];svg.append(s('circle',{cx:l[0],cy:l[1],r:4,fill:cssv('--s1'),stroke:cssv('--surface'),'stroke-width':2}));return svg;}
+
+function delta(cur,prev,goodUp,suffix){if(!(prev>0))return h('div',{class:'d'},'No earlier period');const c=(cur-prev)/prev;const up=c>=0;
+ const cls=Math.abs(c)<.005?'neutral':(up===goodUp?'up-good':'dn-bad');
+ return h('div',{class:'d'},h('span',{class:cls},(up?'▲ +':'▼ ')+(c*100).toFixed(1)+'%'),h('span',{},suffix||'vs previous period'));}
+
+function badge(kind,text){const sym={good:'✓',warn:'!',crit:'✕',mute:'•',info:'i'}[kind];return h('span',{class:'badge'},h('span',{class:'ic '+kind,'aria-hidden':'true'},sym),text);}
+
+function table(cols,rows){const t=h('table',{},h('thead',{},h('tr',{},cols.map(c=>h('th',{class:c.n?'n':''},c.h)))),
+ h('tbody',{},rows.map(r=>h('tr',{},cols.map((c,i)=>h('td',{class:c.n?'n':''},r[i]))))));return h('div',{class:'tw'},t);}
+
+function seg(options,value,onChange){const wrap=h('div',{class:'seg',role:'group'});
+ options.forEach(o=>{const b=h('button',{type:'button','aria-pressed':String(o.id===value),onclick:()=>{onChange(o.id);}},o.label);wrap.append(b);});return wrap;}
+
+/* chart/table twin card */
+function chartCard(o){let mode='chart';const body=h('div',{});const head=h('div',{class:'card-h'});const card=h('div',{class:'card'},head,body);
+ const draw=()=>{head.replaceChildren(h('div',{},h('h2',{},o.title),o.sub?h('div',{class:'csub'},o.sub):null),
+   o.table?seg([{id:'chart',label:'Chart'},{id:'table',label:'Table'}],mode,m=>{mode=m;draw();}):null);
+  body.replaceChildren(...[...(mode==='chart'?[o.legend,o.chart()]:[o.table()]),o.note?h('div',{class:'note'},o.note):null].filter(Boolean));};
+ draw();return card;}
+
+function legend(items){return h('div',{class:'legend'},items.map(i=>h('span',{},h('i',{style:{background:i.color}}),i.label)));}
+
+/* theme toggle */
+function themeToggle(onChange){const b=h('button',{class:'icon-btn',type:'button','aria-label':'Toggle light or dark theme'},'Theme');
+ b.addEventListener('click',()=>{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  document.documentElement.setAttribute('data-theme',cur==='dark'?'light':'dark');onChange&&onChange();});return b;}
+
+/* seeded random */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ===== dummy data: every number here is invented for the demo ===== */
+const TODAY=new Date(2026,9,23);
+const N=360;
+const R=mulberry32(20261023);
+const jit=a=>1+(R()*2-1)*(a||.15);
+const PRICE={full:120000,trial:25000,seat:3999};
+const FULL_SHARE=.4;
+const T_MONTH=800000,T_CPQL=1000,T_STU=7;
+const days=[];for(let i=0;i<N;i++){const d=new Date(TODAY);d.setDate(d.getDate()-(N-1-i));days.push(d);}
+const prob=x=>{const f=Math.floor(x);return f+(R()<x-f?1:0);};
+const wk=d=>[.8,1.05,1.1,1.1,1.05,.95,.85][d.getDay()];
+
+const CAMPAIGNS=[
+ {id:'P1',name:'Parents | Career clarity | Reels',type:'program',lp:'A',spend:1200,cpm:170,trend:.0012,lpConv:.045,qual:.44,set:.64,show:.74,amb:.82,arch:.74,close:.21,
+  assets:[{n:'Reel: "What does your teen want?"',share:.5,ctr:.0185,f7:1.6},{n:'Reel: Parent testimonial',share:.5,ctr:.0162,f7:1.5}]},
+ {id:'P2',name:'Class 9-10 | Future-ready roadmap | Carousel',type:'program',lp:'A',spend:900,cpm:190,trend:0,lpConv:.039,qual:.38,set:.60,show:.70,amb:.78,arch:.70,close:.17,
+  assets:[{n:'Carousel: 5 careers, 1 week',share:.55,ctr:.0124,f7:2.6},{n:'Carousel: Roadmap preview',share:.45,ctr:.0099,f7:2.5}]},
+ {id:'P3',name:'Class 11-12 | Summer program prep | Video',type:'program',lp:'C',spend:1000,cpm:210,trend:-.0006,lpConv:.029,qual:.40,set:.60,show:.72,amb:.80,arch:.72,close:.155,
+  assets:[{n:'Video: Summer school admits',share:.5,ctr:.0112,f7:1.9},{n:'Video: Application checklist',share:.5,ctr:.0105,f7:1.8}]},
+ {id:'P4',name:'Lookalike | Past sign-ups | Static',type:'program',lp:'C',spend:420,cpm:230,trend:-.001,lpConv:.023,qual:.28,set:.55,show:.65,amb:.70,arch:.60,close:.11,
+  assets:[{n:'Static: Is your teen ready?',share:1,ctr:.0068,f7:2.0}]},
+ {id:'W1',name:'Workshop | Product management | Reels',type:'workshop',lp:'B',spend:600,cpm:150,trend:.001,lpConv:.060,seatConv:.25,
+  assets:[{n:'Reel: A day in the life',share:.5,ctr:.0210,f7:1.7},{n:'Reel: Live simulation clip',share:.5,ctr:.0190,f7:1.6}]},
+ {id:'W2',name:'Workshop | Entrepreneurship | Video',type:'workshop',lp:'B',spend:500,cpm:190,trend:0,lpConv:.045,seatConv:.20,
+  assets:[{n:'Video: Founder talk',share:.6,ctr:.0140,f7:2.1},{n:'Video: Build a startup in a day',share:.4,ctr:.0112,f7:2.0}]},
+ {id:'W3',name:'Workshop | Retarget site visitors | Static',type:'workshop',lp:'B',spend:150,cpm:120,trend:0,lpConv:.090,seatConv:.25,
+  assets:[{n:'Static: Seats filling fast',share:1,ctr:.0280,f7:3.1}]},
+ {id:'O',name:'Organic and referral',type:'organic',lp:'A',spend:0,cpm:0,organicLeads:1.0,qual:.55,set:.70,show:.80,amb:.85,arch:.80,close:.34,assets:[]}
+];
+const LP={A:{name:'Program page',load:2.1},B:{name:'Workshop page',load:3.5},C:{name:'Summer-program page',load:2.7}};
+
+const ZERO=()=>({spend:0,impr:0,clicks:0,visits:0,leads:0,qual:0,set:0,held:0,amb:0,arch:0,sign:0,seats:0,revFull:0,revTrial:0,revWs:0});
+function acc(o,r){for(const k in o)o[k]+=r[k];return o;}
+const REC={};
+CAMPAIGNS.forEach(c=>{
+ c.assets.forEach(a=>{a.d=[];});
+ REC[c.id]=days.map((d,i)=>{
+  const o=ZERO();const f=wk(d);
+  if(c.type==='organic'){o.leads=prob(c.organicLeads*f*jit(.5));}
+  else{
+   const sp=c.spend*f*jit(.12)*(1+c.trend*(i-N+1));o.spend=sp;
+   c.assets.forEach(a=>{const impr=a.share*sp/c.cpm*1000;const cl=impr*a.ctr*jit(.12);
+    a.d.push({impr,clicks:cl,spend:a.share*sp});o.impr+=impr;o.clicks+=cl;});
+   o.visits=o.clicks*.85;o.leads=prob(o.visits*c.lpConv*jit(.2));
+  }
+  if(c.type==='workshop'){o.seats=o.leads*c.seatConv*jit(.2);o.revWs=o.seats*PRICE.seat;}
+  else{
+   o.qual=o.leads*c.qual*jit(.12);o.set=o.qual*c.set*jit(.12);o.held=o.set*c.show*jit(.1);
+   o.amb=o.held*c.amb*jit(.1);o.arch=o.amb*c.arch*jit(.1);o.sign=o.arch*c.close*jit(.2);
+   o.revFull=o.sign*FULL_SHARE*PRICE.full;o.revTrial=o.sign*(1-FULL_SHARE)*PRICE.trial;
+  }
+  return o;});
+});
+const TOT=days.map((_,i)=>{const o=ZERO();CAMPAIGNS.forEach(c=>acc(o,REC[c.id][i]));return o;});
+function sumC(id,a,b){const o=ZERO();for(let i=a;i<=b;i++)acc(o,REC[id][i]);return o;}
+function sumAll(a,b){const o=ZERO();for(let i=a;i<=b;i++)acc(o,TOT[i]);return o;}
+function sumTypes(a,b,types){const o=ZERO();CAMPAIGNS.filter(c=>types.includes(c.type)).forEach(c=>acc(o,sumC(c.id,a,b)));return o;}
+function assetSum(c,k,a,b){let impr=0,clicks=0,spend=0;for(let i=a;i<=b;i++){const r=c.assets[k].d[i];impr+=r.impr;clicks+=r.clicks;spend+=r.spend;}return{impr,clicks,spend,ctr:impr?clicks/impr:0};}
+const freqOf=(asset,len)=>asset.f7*(1+.55*Math.min(1,Math.max(0,(len-7)/23)));
+
+function M(a,b){const t=sumAll(a,b),prog=sumTypes(a,b,['program','organic']),paid=sumTypes(a,b,['program']),ws=sumTypes(a,b,['workshop']),org=sumTypes(a,b,['organic']);
+ const rev=t.revFull+t.revTrial+t.revWs;
+ return{t,prog,paid,ws,org,rev,leads:prog.leads,paidLeads:paid.leads,organic:org.leads,qualAll:prog.qual,qualPaid:paid.qual,sign:prog.sign,seats:ws.seats,
+  spend:t.spend,progSpend:paid.spend,wsSpend:ws.spend,cpql:paid.spend/Math.max(paid.qual,.01),conv:prog.sign/Math.max(prog.qual,.01),roas:rev/Math.max(t.spend,1),cac:paid.spend/Math.max(paid.sign,.01)};}
+
+/* dated records that do not depend on the timeline */
+const dayIdx=d=>N-1-Math.round((TODAY-d)/864e5);
+const addD=n=>{const d=new Date(TODAY);d.setDate(d.getDate()+n);return d;};
+const WORKSHOPS=[];for(let k=0;k<12;k++){const d=new Date(2026,9,17);d.setDate(d.getDate()-14*k);const e=dayIdx(d);const seats=Math.min(60,sumTypes(e-13,e,['workshop']).seats);
+ WORKSHOPS.push({date:d,idx:e,seats:Math.round(seats),rev:Math.round(seats)*PRICE.seat});}
+const INVOICES=[
+ {id:'INV-2641',who:'Sharma family',type:'Full program',amt:120000,raised:-3,due:11},
+ {id:'INV-2638',who:'Iyer family',type:'3-month trial',amt:25000,raised:-6,due:8},
+ {id:'INV-2630',who:'Kapoor family',type:'Full program',amt:120000,raised:-12,due:2},
+ {id:'INV-2622',who:'Reddy family',type:'3-month trial',amt:25000,raised:-19,due:-5},
+ {id:'INV-2615',who:'Bose family',type:'3-month trial',amt:25000,raised:-24,due:-10},
+ {id:'INV-2601',who:'Malhotra family',type:'Full program',amt:120000,raised:-41,due:-27},
+ {id:'INV-2577',who:'Nair family',type:'3-month trial',amt:25000,raised:-58,due:-44},
+ {id:'INV-2552',who:'Gill family',type:'Full program',amt:120000,raised:-83,due:-69}];
+const RENEWALS=[
+ {who:'Ananya R.',ends:4,risk:'low',note:'Daily app use, 3 workshops attended'},
+ {who:'Kabir S.',ends:7,risk:'high',note:'No app use for 12 days, missed 2 sessions'},
+ {who:'Meera P.',ends:11,risk:'low',note:'On track, parent attends reviews'},
+ {who:'Dev K.',ends:15,risk:'med',note:'Attends sessions, low app use'},
+ {who:'Ishaan T.',ends:19,risk:'high',note:'Missed last 3 pod sessions'},
+ {who:'Riya M.',ends:24,risk:'low',note:'Strong progress, asked about full program'},
+ {who:'Aarush B.',ends:28,risk:'med',note:'Parent has not joined a review yet'}];
+const JOURNEY={signed:19,dropped:8};
+
+/* ===== interface ===== */
+const RANGES=[{id:'7',label:'Last 7 days',len:7},{id:'30',label:'Last 30 days',len:30},{id:'mtd',label:'This month so far',len:23},{id:'90',label:'Last 90 days',len:90},{id:'180',label:'Last 180 days',len:180}];
+const TABS=[{id:'overview',label:'Overview'},{id:'revenue',label:'Revenue'},{id:'funnel',label:'Funnel'},{id:'campaigns',label:'Campaigns'},{id:'rca',label:'What to do (RCA)'}];
+const state={range:'30',tab:'overview'};
+const app=document.getElementById('app');
+const col=()=>[cssv('--s1'),cssv('--s2'),cssv('--s3')];
+function W(){const r=RANGES.find(x=>x.id===state.range);const b=N-1,a=b-r.len+1;return{r,a,b,len:r.len,pa:a-r.len,pb:a-1};}
+const go=t=>{state.tab=t;render();scrollTo({top:0});};
+
+/* ---------- rules for the RCA verdict (shown to the reader, not hidden) ---------- */
+const RULES={dropRoas:1.0,scaleRoas:3.0,freq:3,minCtr:.009};
+function campaignStats(c,a,b,len){const s=sumC(c.id,a,b);const rev=s.revFull+s.revTrial+s.revWs;
+ const assets=c.assets.map((x,k)=>({name:x.n,...assetSum(c,k,a,b),freq:freqOf(x,len)}));
+ const ctr=s.impr?s.clicks/s.impr:0;const freq=assets.length?Math.max(...assets.map(x=>x.freq)):0;
+ const results=c.type==='workshop'?s.seats:s.sign;const cpr=results>0?s.spend/results:null;
+ const roas=s.spend?rev/s.spend:null;return{c,s,rev,assets,ctr,freq,results,cpr,roas,qualCost:s.qual>0?s.spend/s.qual:null};}
+function verdict(st){
+ if(st.roas<RULES.dropRoas)return{k:'Drop',kind:'crit',why:`Returns ₹${st.roas.toFixed(2)} for every ₹1 spent, below break-even.`};
+ if(st.freq>=RULES.freq)return{k:'Refresh',kind:'warn',why:`Ad frequency is ${st.freq.toFixed(1)} (3 or more means the audience is tired). Swap the creative before adding budget.`};
+ if(st.ctr<RULES.minCtr)return{k:'Refresh',kind:'warn',why:`Click rate is ${pct(st.ctr,2)}, below ${pct(RULES.minCtr,1)}. The creative is not earning clicks.`};
+ if(st.roas>=RULES.scaleRoas)return{k:'Scale',kind:'good',why:`Returns ₹${st.roas.toFixed(1)} per ₹1 with healthy frequency (${st.freq.toFixed(1)}). Room to add budget.`};
+ return{k:'Hold',kind:'mute',why:`Returns ₹${st.roas.toFixed(1)} per ₹1. Keep running and watch for another 2 weeks.`};}
+function rcaData(){const w=W();const len=Math.max(w.len,30);const b=N-1,a=b-len+1;
+ const paidC=CAMPAIGNS.filter(c=>c.type!=='organic');
+ const rows=paidC.map(c=>{const st=campaignStats(c,a,b,len);return{...st,v:verdict(st)};});
+ const order={Scale:0,Refresh:1,Hold:2,Drop:3};rows.sort((x,y)=>order[x.v.k]-order[y.v.k]||y.roas-x.roas);return{rows,len};}
+
+/* ---------- small builders ---------- */
+function statTile(label,val,d,sp){return h('div',{class:'tile'},h('div',{class:'l'},label),h('div',{class:'v'},val),d,sp?spark(sp):null);}
+function bucketSeries(a,b,fn,n){n=n||12;const len=b-a+1;const size=Math.max(1,Math.ceil(len/n));const out=[];for(let i=a;i<=b;i+=size){out.push(fn(i,Math.min(b,i+size-1)));}return out;}
+function sectionTitle(t){return h('div',{class:'sec'},t);}
+function jump(label,tab){return h('button',{class:'back',type:'button',onclick:()=>go(tab)},label+' →');}
+
+/* ---------- revenue chart: stacked columns ---------- */
+function buckets(a,b){const len=b-a+1;const size=len<=31?1:7;const out=[];for(let i=a;i<=b;i+=size){const e=Math.min(b,i+size-1);const t=sumAll(i,e);
+ out.push({i,e,full:t.revFull,trial:t.revTrial,ws:t.revWs,label:fmtD(days[i])+(size>1?' to '+fmtD(days[e]):'')});}return out;}
+function revChart(a,b){return responsive(width=>{const bk=buckets(a,b);const C=col();const H=250,ml=44,mr=6,mt=8,mb=26,pw=width-ml-mr,ph=H-mt-mb;
+ const mx=niceMax(Math.max(...bk.map(x=>x.full+x.trial+x.ws),1));const svg=s('svg',{width,height:H,role:'img','aria-label':'Revenue by period, stacked by full program, 3-month trial and workshop'});
+ for(let i=0;i<=4;i++){const y=mt+ph-ph*i/4;svg.append(s('line',{x1:ml,x2:width-mr,y1:y,y2:y,stroke:i?cssv('--grid'):cssv('--axis')}));svg.append(s('text',{x:ml-8,y:y+4,'text-anchor':'end',class:'ax'},i?compactTick(mx*i/4):'0'));}
+ const band=pw/bk.length,bw=Math.min(24,band*.7);const every=Math.max(1,Math.ceil(bk.length/Math.max(2,Math.floor(pw/70))));
+ bk.forEach((x,i)=>{const cx=ml+band*i+band/2,xx=cx-bw/2;let y=mt+ph;const segs=[[x.full,C[0]],[x.trial,C[1]],[x.ws,C[2]]].filter(z=>z[0]>0);
+  segs.forEach((z,k)=>{const hh=z[0]/mx*ph;const top=k===segs.length-1;const gap=k<segs.length-1?2:0;const bh=Math.max(0,hh-gap);
+   if(bh>0)svg.append(s('path',{d:top?barPath(xx,y-hh,bw,bh,4):`M${xx},${y-hh+ (hh-bh)}h${bw}v${bh}h${-bw}Z`,fill:z[1]}));y-=hh;});
+  if(i%every===0)svg.append(s('text',{x:cx,y:H-8,'text-anchor':'middle',class:'ax'},fmtD(days[x.i])));
+  const hit=s('rect',{x:ml+band*i,y:mt,width:band,height:ph,fill:'transparent'});
+  hover(hit,x.label,()=>[{color:C[0],value:fmtINR(x.full),label:'Full program'},{color:C[1],value:fmtINR(x.trial),label:'3-month trial'},{color:C[2],value:fmtINR(x.ws),label:'Workshop'},{value:fmtINR(x.full+x.trial+x.ws),label:'Total'}]);svg.append(hit);});
+ return svg;});}
+function revLegend(){const C=col();return legend([{color:C[0],label:'Full program'},{color:C[1],label:'3-month trial'},{color:C[2],label:'Workshop'}]);}
+function revTable(a,b){const bk=buckets(a,b);return table([{h:'Period'},{h:'Full program',n:1},{h:'3-month trial',n:1},{h:'Workshop',n:1},{h:'Total',n:1}],bk.map(x=>[x.label,fmtINR(x.full),fmtINR(x.trial),fmtINR(x.ws),fmtINR(x.full+x.trial+x.ws)]));}
+
+/* ---------- overview ---------- */
+function heroCard(w,m,p){const mtd=state.range==='mtd';const T=mtd?T_MONTH:T_MONTH*w.len/30;const pace=mtd?T_MONTH*w.len/31:null;
+ const base=pace||T;const ratio=m.rev/base;const kind=ratio>=1?'good':ratio>=.85?'warn':'crit';
+ const fill=kind==='good'?cssv('--s1'):kind==='warn'?cssv('--warn'):cssv('--crit');
+ const status=mtd?(m.rev>=pace?`Ahead of pace by ${fmtINR(m.rev-pace)}`:`Behind pace by ${fmtINR(pace-m.rev)}`):(m.rev>=T?`Target met, ${fmtINR(m.rev-T)} over`:`${fmtINR(T-m.rev)} short of target`);
+ const meter=h('div',{class:'meter',role:'img','aria-label':`Revenue ${Math.round(m.rev/T*100)} percent of target`},h('b',{style:{width:Math.min(100,m.rev/T*100)+'%',background:fill}}),pace?h('u',{style:{left:Math.min(100,pace/T*100)+'%'},title:'Expected by today'}):null);
+ return h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},mtd?'Revenue this month vs target':'Revenue vs target'),h('div',{class:'csub'},mtd?'Full-month target of '+fmtINR(T_MONTH)+', black tick shows where we should be today':'Monthly target of '+fmtINR(T_MONTH)+', pro-rated to the selected period'))),
+  h('div',{class:'hero'},fmtINR(m.rev),' ',h('small',{},'of '+fmtINR(T))),h('div',{style:{margin:'14px 0 10px'}},meter),
+  h('div',{style:{display:'flex',flexWrap:'wrap',gap:'6px 16px',alignItems:'center'}},badge(kind,status),h('span',{class:'neutral'},Math.round(m.rev/T*100)+'% of target'),delta(m.rev,p.rev,true).firstChild?delta(m.rev,p.rev,true):h('span',{})));}
+
+function overview(){const w=W(),m=M(w.a,w.b),p=M(w.pa,w.pb);const frag=h('div',{});
+ frag.append(heroCard(w,m,p));
+ const sp=f=>bucketSeries(w.a,w.b,(i,e)=>f(M(i,e)));
+ frag.append(sectionTitle('Key numbers'));
+ frag.append(h('div',{class:'tiles'},
+  statTile('Students onboarded',fmtN(m.sign),delta(m.sign,p.sign,true),sp(x=>x.sign)),
+  statTile('Qualified leads',fmtN(m.qualAll),delta(m.qualAll,p.qualAll,true),sp(x=>x.qualAll)),
+  statTile('Cost per qualified lead',fmtINR(m.cpql),delta(m.cpql,p.cpql,false),sp(x=>x.cpql)),
+  statTile('Program conversion',pct(m.conv),delta(m.conv,p.conv,true),sp(x=>x.conv)),
+  statTile('Workshop seats sold',fmtN(m.seats),delta(m.seats,p.seats,true),sp(x=>x.seats)),
+  statTile('Return on ad spend',m.roas.toFixed(1)+'x',delta(m.roas,p.roas,true),sp(x=>x.roas))));
+ frag.append(h('div',{style:{height:'14px'}}));
+ frag.append(chartCard({title:'Revenue over time',sub:'Stacked by source. Hover a column for the split.',legend:revLegend(),chart:()=>revChart(w.a,w.b),table:()=>revTable(w.a,w.b)}));
+ frag.append(sectionTitle('What needs a decision'));
+ const rc=rcaData();const by=k=>rc.rows.filter(r=>r.v.k===k);
+ const inv=INVOICES.filter(x=>{const di=dayIdx(addD(x.raised));return di>=w.a&&di<=w.b;});const invTot=inv.reduce((z,x)=>z+x.amt,0);
+ const ren=RENEWALS.filter(x=>x.ends<=14);const slow=Object.values(LP).filter(x=>x.load>3);
+ const camp=k=>by(k).map(r=>r.c.name.split(' | ')[0]+' | '+r.c.name.split(' | ')[1]).join(', ')||'None';
+ frag.append(h('div',{class:'grid g2'},
+  h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},'Campaign calls'),h('div',{class:'csub'},'From the last '+rc.len+' days'))),
+   h('ul',{class:'list'},['Scale','Refresh','Hold','Drop'].map(k=>{const kind={Scale:'good',Refresh:'warn',Hold:'mute',Drop:'crit'}[k];return h('li',{},h('div',{},badge(kind,k+' ('+by(k).length+')'),h('div',{class:'note',style:{marginTop:'2px'}},camp(k))));})),jump('See the reasoning','rca')),
+  h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},'Needs attention'),h('div',{class:'csub'},'Money and contacts at risk'))),
+   h('ul',{class:'list'},
+    h('li',{},h('div',{},badge(invTot?'warn':'good','Unpaid invoices'),h('div',{class:'note',style:{marginTop:'2px'}},inv.length+' raised in this period, '+fmtINR(invTot)+' outstanding')),h('button',{class:'back',onclick:()=>go('revenue')},'View')),
+    h('li',{},h('div',{},badge(ren.some(x=>x.risk==='high')?'crit':'warn','Trial renewals in 14 days'),h('div',{class:'note',style:{marginTop:'2px'}},ren.length+' families, '+ren.filter(x=>x.risk==='high').length+' at high risk')),h('button',{class:'back',onclick:()=>go('revenue')},'View')),
+    h('li',{},h('div',{},badge(slow.length?'warn':'good','Landing page speed'),h('div',{class:'note',style:{marginTop:'2px'}},slow.length?slow.map(x=>x.name+' loads in '+x.load+'s (over 3s)').join(', '):'All pages load in under 3 seconds')),h('button',{class:'back',onclick:()=>go('campaigns')},'View'))))));
+ return frag;}
+
+/* ---------- revenue tab ---------- */
+function revenueTab(){const w=W(),m=M(w.a,w.b),p=M(w.pa,w.pb);const f=h('div',{});const C=col();
+ const prog=m.t.revFull+m.t.revTrial,wsr=m.t.revWs,tot=prog+wsr||1;
+ f.append(h('div',{class:'tiles'},
+  statTile('Full program revenue',fmtINR(m.t.revFull),delta(m.t.revFull,p.t.revFull,true)),
+  statTile('3-month trial revenue',fmtINR(m.t.revTrial),delta(m.t.revTrial,p.t.revTrial,true)),
+  statTile('Full program sign-ups',fmtN(Math.round(m.sign*FULL_SHARE)),h('div',{class:'d'},'of '+fmtN(m.sign)+' total')),
+  statTile('3-month trial sign-ups',fmtN(Math.round(m.sign)-Math.round(m.sign*FULL_SHARE)),h('div',{class:'d'},'of '+fmtN(m.sign)+' total')),
+  statTile('Workshop revenue',fmtINR(wsr),delta(wsr,p.t.revWs,true)),
+  statTile('Seats sold at ₹3,999',fmtN(m.seats),delta(m.seats,p.seats,true))));
+ f.append(h('div',{style:{height:'14px'}}));
+ f.append(h('div',{class:'grid g2'},
+  chartCard({title:'Program vs workshop revenue',sub:'Share of revenue in the selected period',legend:legend([{color:C[0],label:'Program (full and trial)'},{color:C[2],label:'Workshop'}]),
+   chart:()=>responsive(width=>{const H=70,ml=0,pw=width;const svg=s('svg',{width,height:H,role:'img','aria-label':'Program versus workshop revenue share'});const pw1=Math.max(0,pw*prog/tot-1);
+    svg.append(s('path',{d:hPath(0,14,pw1,22,4),fill:C[0]}));svg.append(s('path',{d:hPath(pw1+2,14,Math.max(0,pw-pw1-2),22,4),fill:C[2]}));
+    svg.append(s('text',{x:0,y:58,class:'val'},fmtINR(prog)+' · '+pct(prog/tot,0)));svg.append(s('text',{x:width,y:58,'text-anchor':'end',class:'val'},fmtINR(wsr)+' · '+pct(wsr/tot,0)));
+    const hit=s('rect',{x:0,y:8,width,height:34,fill:'transparent'});hover(hit,'Revenue split',[{color:C[0],value:fmtINR(prog),label:'Program'},{color:C[2],value:fmtINR(wsr),label:'Workshop'}]);svg.append(hit);return svg;}),
+   table:()=>table([{h:'Source'},{h:'Revenue',n:1},{h:'Share',n:1}],[['Program (full and trial)',fmtINR(prog),pct(prog/tot,0)],['Workshop',fmtINR(wsr),pct(wsr/tot,0)]])}),
+  chartCard({title:'Students onboarded by month',sub:'Always the last 6 months, not affected by the timeline',
+   chart:()=>responsive(width=>{const mo=[];for(let k=5;k>=0;k--){const d=new Date(TODAY.getFullYear(),TODAY.getMonth()-k,1);const e=new Date(d.getFullYear(),d.getMonth()+1,0);
+    const a=Math.max(0,dayIdx(d)),b=Math.min(N-1,dayIdx(e));mo.push({label:MON[d.getMonth()],v:Math.round(sumTypes(a,b,['program','organic']).sign)});}
+    const H=190,ml=30,mr=6,mt=14,mb=24,pw=width-ml-mr,ph=H-mt-mb;const mx=Math.max(T_STU,...mo.map(x=>x.v))*1.15;const svg=s('svg',{width,height:H,role:'img','aria-label':'Students onboarded per month'});
+    [0,.5,1].forEach(q=>{const y=mt+ph-ph*q;svg.append(s('line',{x1:ml,x2:width-mr,y1:y,y2:y,stroke:q?cssv('--grid'):cssv('--axis')}));svg.append(s('text',{x:ml-6,y:y+4,'text-anchor':'end',class:'ax'},Math.round(mx*q)));});
+    const band=pw/mo.length,bw=Math.min(24,band*.6);mo.forEach((x,i)=>{const cx=ml+band*i+band/2,hh=x.v/mx*ph;svg.append(s('path',{d:barPath(cx-bw/2,mt+ph-hh,bw,hh,4),fill:C[0]}));
+     svg.append(s('text',{x:cx,y:mt+ph-hh-6,'text-anchor':'middle',class:'val'},String(x.v)));svg.append(s('text',{x:cx,y:H-6,'text-anchor':'middle',class:'ax'},x.label));
+     const hit=s('rect',{x:cx-band/2,y:mt,width:band,height:ph,fill:'transparent'});hover(hit,x.label,[{color:C[0],value:String(x.v),label:'students onboarded'}]);svg.append(hit);});
+    const ty=mt+ph-T_STU/mx*ph;svg.append(s('line',{x1:ml,x2:width-mr,y1:ty,y2:ty,stroke:cssv('--ink2'),'stroke-width':1}));svg.append(s('text',{x:width-mr,y:ty-5,'text-anchor':'end',class:'ax'},'Target '+T_STU));return svg;}),
+   table:()=>table([{h:'Month'},{h:'Onboarded',n:1}],[...Array(6)].map((_,i)=>{const k=5-i;const d=new Date(TODAY.getFullYear(),TODAY.getMonth()-k,1);const e=new Date(d.getFullYear(),d.getMonth()+1,0);return[MON[d.getMonth()],String(Math.round(sumTypes(Math.max(0,dayIdx(d)),Math.min(N-1,dayIdx(e)),['program','organic']).sign))];}))})));
+ f.append(sectionTitle('Fortnightly workshop (Razorpay)'));
+ const wl=WORKSHOPS.filter(x=>x.idx>=w.a&&x.idx<=w.b);const show=wl.length?wl:WORKSHOPS.slice(0,2);
+ f.append(h('div',{class:'card'},table([{h:'Workshop date'},{h:'Seats sold',n:1},{h:'Capacity filled',n:1},{h:'Revenue',n:1}],show.map(x=>[fmtD(x.date),x.seats+' / 60',pct(x.seats/60,0),fmtINR(x.rev)])),
+  !wl.length?h('div',{class:'note'},'No workshop fell inside this period, showing the latest two.'):null));
+ f.append(sectionTitle('Invoices generated but not paid'));
+ const inv=INVOICES.filter(x=>{const di=dayIdx(addD(x.raised));return di>=w.a&&di<=w.b;});
+ f.append(h('div',{class:'card'},inv.length?table([{h:'Invoice'},{h:'Family'},{h:'Type'},{h:'Raised'},{h:'Amount',n:1},{h:'Status'}],inv.map(x=>[x.id,x.who,x.type,fmtD(addD(x.raised)),fmtINR(x.amt),x.due<0?badge('crit',Math.abs(x.due)+' days overdue'):badge('warn','Due in '+x.due+' days')])):h('div',{class:'empty'},'No unpaid invoices were raised in this period.'),
+  h('div',{class:'note'},'Showing invoices raised in the selected period that are still unpaid today.')));
+ f.append(sectionTitle('Renewals coming up: 3-month trial teens'));
+ f.append(h('div',{class:'card'},table([{h:'Teen'},{h:'Trial ends'},{h:'Days left',n:1},{h:'Renewal risk'},{h:'Why'}],RENEWALS.map(x=>[x.who,fmtD(addD(x.ends)),x.ends,x.risk==='high'?badge('crit','High'):x.risk==='med'?badge('warn','Medium'):badge('good','Low'),x.note])),
+  h('div',{class:'note'},'Always the next 30 days, not affected by the timeline. Risk comes from app use and attendance.')));
+ return f;}
+
+/* ---------- funnel tab ---------- */
+function funnelTab(){const w=W(),m=M(w.a,w.b),p=M(w.pa,w.pb);const f=h('div',{});const pr=m.prog;
+ const stages=[['Total leads',pr.leads],['Qualified leads',pr.qual],['Discovery call set',pr.set],['Discovery call held',pr.held],['Ambition interview',pr.amb],['Architect session',pr.arch],['Signed up',pr.sign]];
+ const ramp=['--r250','--r300','--r350','--r400','--r450','--r500','--r550'].map(cssv);
+ const showUp=pr.held/Math.max(pr.set,.01),drop=1-pr.amb/Math.max(pr.held,.01);
+ f.append(h('div',{class:'tiles'},
+  statTile('Total leads',fmtN(pr.leads),delta(pr.leads,p.prog.leads,true),null),
+  statTile('Organic leads',fmtN(m.organic),h('div',{class:'d'},pct(m.organic/Math.max(pr.leads,1),0)+' of all leads')),
+  statTile('Cost per qualified lead',fmtINR(m.cpql),h('div',{class:'d'},'Target '+fmtINR(T_CPQL))),
+  statTile('Program conversion',pct(m.conv),delta(m.conv,p.conv,true)),
+  statTile('Discovery call show-up',pct(showUp,0),delta(showUp,p.prog.held/Math.max(p.prog.set,.01),true)),
+  statTile('Ambition interview drop-off',pct(drop,0),delta(drop,1-p.prog.amb/Math.max(p.prog.held,.01),false))));
+ f.append(h('div',{style:{height:'14px'}}));
+ f.append(chartCard({title:'Program funnel',sub:'Meta ads plus organic leads. Each bar shows people and the share kept from the step before.',
+  chart:()=>responsive(width=>hbars(stages.map((x,i)=>({label:x[0],value:x[1],color:ramp[i],text:fmtN(x[1])+(i?'  ·  '+pct(x[1]/Math.max(stages[i-1][1],.01),0):''),
+   tipTitle:x[0],tipRows:[{value:fmtN(x[1]),label:'people'},i?{value:pct(x[1]/Math.max(stages[i-1][1],.01),1),label:'of the previous step'}:{value:'100%',label:'start of funnel'},{value:pct(x[1]/Math.max(stages[0][1],.01),1),label:'of all leads'}]})),width,{rightW:130,aria:'Program funnel'})),
+  table:()=>table([{h:'Stage'},{h:'People',n:1},{h:'From previous',n:1},{h:'From all leads',n:1}],stages.map((x,i)=>[x[0],fmtN(x[1]),i?pct(x[1]/Math.max(stages[i-1][1],.01),0):'-',pct(x[1]/Math.max(stages[0][1],.01),1)]))}));
+ f.append(sectionTitle('Where leads come from'));
+ const paid=m.paid,org=m.org;const row=(n,x)=>[n,fmtN(x.leads),fmtN(x.qual),pct(x.qual/Math.max(x.leads,1),0),fmtN(x.sign),pct(x.sign/Math.max(x.qual,.01),1)];
+ f.append(h('div',{class:'grid g2'},h('div',{class:'card'},table([{h:'Source'},{h:'Leads',n:1},{h:'Qualified',n:1},{h:'Qualified %',n:1},{h:'Signed',n:1},{h:'Conversion',n:1}],[row('Meta ads',paid),row('Organic and referral',org)]),h('div',{class:'note'},'Conversion is sign-ups divided by qualified leads.')),
+  h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},'Average lead journey'),h('div',{class:'csub'},'Time spent in the funnel'))),
+   h('div',{class:'kv'},h('span',{},'Lead to sign-up'),h('strong',{},JOURNEY.signed+' days')),h('div',{class:'kv'},h('span',{},'Lead to drop-off'),h('strong',{},JOURNEY.dropped+' days')),
+   h('div',{class:'note'},'Illustrative values. In production this comes from the lead stage timestamps stored in ClickUp.'))));
+ return f;}
+
+/* ---------- campaigns tab ---------- */
+function campaignsTab(){const w=W();const f=h('div',{});const len=w.len;
+ const sts=CAMPAIGNS.filter(c=>c.type!=='organic').map(c=>campaignStats(c,w.a,w.b,len));
+ const all=[];sts.forEach(st=>st.assets.forEach(a=>all.push({camp:st.c.name,...a})));all.sort((x,y)=>y.ctr-x.ctr);
+ const gray=cssv('--muted'),warn=cssv('--serious'),blue=cssv('--s1');
+ f.append(chartCard({title:'Click rate by ad asset',sub:'Best three in blue, weakest three flagged for refresh',legend:legend([{color:blue,label:'Highest click rate'},{color:gray,label:'In between'},{color:warn,label:'Lowest: refresh'}]),
+  chart:()=>responsive(width=>hbars(all.map((x,i)=>{const top=i<3,low=i>=all.length-3;return{label:x.name,value:x.ctr,color:top?blue:low?warn:gray,text:pct(x.ctr,2)+(low?'  ↻ Refresh':''),tipTitle:x.name,tipRows:[{value:pct(x.ctr,2),label:'click rate'},{value:fmtN(x.impr),label:'impressions'},{value:x.freq.toFixed(1),label:'frequency'},{value:x.camp,label:''}]};}),width,{labelW:Math.min(240,Math.round(width*.42)),rightW:110,bh:16,gap:11,aria:'Click rate by ad asset'})),
+  table:()=>table([{h:'Asset'},{h:'Campaign'},{h:'Click rate',n:1},{h:'Impressions',n:1}],all.map(x=>[x.name,x.camp,pct(x.ctr,2),fmtN(x.impr)]))}));
+ f.append(sectionTitle('Ad set frequency'));
+ f.append(h('div',{class:'card'},table([{h:'Campaign'},{h:'Type'},{h:'Frequency',n:1},{h:'Status'}],sts.map(st=>[st.c.name,st.c.type==='workshop'?'Workshop':'Program',st.freq.toFixed(1),st.freq>=RULES.freq?badge('warn','Change the creative'):badge('good','Healthy')]))
+  ,h('div',{class:'note'},'Frequency is how many times the same person saw the ad. Three or more means it is time to change it. It rises with longer periods, so use 30 days or more.')));
+ f.append(sectionTitle('Landing page health'));
+ const lpRows=Object.keys(LP).map(k=>{const cs=CAMPAIGNS.filter(c=>c.lp===k&&c.type!=='organic');let vis=0,ld=0;cs.forEach(c=>{const s2=sumC(c.id,w.a,w.b);vis+=s2.visits;ld+=s2.leads;});
+  const dr=vis?1-ld/vis:0;return[LP[k].name,cs.map(c=>c.id).join(', '),fmtN(vis),pct(dr,1),LP[k].load.toFixed(1)+'s',LP[k].load>3?badge('warn','Slow, aim under 3s'):badge('good','Fast')];});
+ f.append(h('div',{class:'card'},table([{h:'Page'},{h:'Used by'},{h:'Visits',n:1},{h:'Drop-off',n:1},{h:'Load time',n:1},{h:'Status'}],lpRows),h('div',{class:'note'},'Drop-off is the share of visitors who left without leaving their details.')));
+ return f;}
+
+/* ---------- RCA tab ---------- */
+function rcaTab(){const rc=rcaData();const f=h('div',{});const w=W();
+ f.append(h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},'How each call is made'),h('div',{class:'csub'},'Rules are fixed and visible, so a decision can always be traced'))),
+  h('ul',{class:'list'},
+   h('li',{},badge('crit','Drop'),h('span',{class:'neutral'},'Return on ad spend is below ₹'+RULES.dropRoas.toFixed(1)+' for every ₹1 spent')),
+   h('li',{},badge('warn','Refresh'),h('span',{class:'neutral'},'Ad frequency is '+RULES.freq+' or more, or click rate is under '+pct(RULES.minCtr,1))),
+   h('li',{},badge('good','Scale'),h('span',{class:'neutral'},'Return is ₹'+RULES.scaleRoas.toFixed(0)+' or more per ₹1, with healthy frequency')),
+   h('li',{},badge('mute','Hold'),h('span',{class:'neutral'},'Anything else: keep running and watch'))),
+  h('div',{class:'note'},'Uses the last '+rc.len+' days'+(w.len<30?' even though a shorter period is selected, because 7 days of data is too thin to move budget.':'.')+' Return on ad spend means revenue earned divided by money spent.')));
+ f.append(h('div',{style:{height:'14px'}}));
+ f.append(h('div',{class:'card'},table([{h:'Campaign'},{h:'Spend',n:1},{h:'Click rate',n:1},{h:'Frequency',n:1},{h:'Cost per result',n:1},{h:'Return per ₹1',n:1},{h:'Call'},{h:'Why'}],
+  rc.rows.map(r=>[r.c.name,fmtINR(r.s.spend),pct(r.ctr,2),r.freq.toFixed(1),r.cpr?fmtINR(r.cpr)+(r.c.type==='workshop'?' / seat':' / sign-up'):'No results',r.roas.toFixed(1),badge(r.v.kind,r.v.k),r.v.why])),
+  h('div',{class:'note'},'Organic leads cost nothing, so they are not part of the spend decision.')));
+ return f;}
+
+/* ---------- shell ---------- */
+function render(){const w=W();app.replaceChildren();
+ app.append(h('header',{class:'top'},h('div',{},h('h1',{},'Alcovia GTM tracker'),h('div',{class:'sub'},fmtD(days[w.a])+' to '+fmtD(days[w.b])+' 2026 · compared with the '+w.len+' days before')),
+  h('div',{style:{display:'flex',gap:'8px',alignItems:'center'}},h('span',{class:'pill'},'Dummy data'),themeToggle(render))));
+ app.append(h('div',{class:'filters'},h('label',{},'Timeline',(()=>{const sel=h('select',{class:'sel','aria-label':'Timeline'},RANGES.map(r=>h('option',{value:r.id,selected:r.id===state.range?'selected':null},r.label)));sel.value=state.range;sel.addEventListener('change',()=>{state.range=sel.value;render();});return sel;})()),
+  h('span',{class:'note',style:{margin:0}},'Every number below follows this selection unless a card says otherwise.')));
+ app.append(h('div',{class:'tabs',role:'tablist'},TABS.map(t=>h('button',{type:'button',role:'tab','aria-selected':String(t.id===state.tab),onclick:()=>go(t.id)},t.label))));
+ app.append({overview,revenue:revenueTab,funnel:funnelTab,campaigns:campaignsTab,rca:rcaTab}[state.tab]());}
+(function(){const q=new URLSearchParams(location.hash.slice(1));if(TABS.some(t=>t.id===q.get('tab')))state.tab=q.get('tab');if(RANGES.some(r=>r.id===q.get('range')))state.range=q.get('range');if(q.get('theme'))document.documentElement.setAttribute('data-theme',q.get('theme'));})();
+render();
+</script></body></html>

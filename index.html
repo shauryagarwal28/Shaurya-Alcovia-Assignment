@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alcovia assignment dashboards</title>
+<style>
+:root{--bg:#f9f9f7;--ink:#0b0b0b;--ink2:#52514e;--card:#fcfcfb;--line:rgba(11,11,11,.12);--navy:#002c45}
+@media (prefers-color-scheme:dark){:root{--bg:#0d0d0d;--ink:#f0efec;--ink2:#c3c2b7;--card:#1a1a19;--line:rgba(255,255,255,.12);--navy:#8fc1e3}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:720px;margin:0 auto;padding:40px 16px}
+h1{font-size:26px;margin:0 0 6px;color:var(--navy)}p{color:var(--ink2);margin:0 0 20px}
+a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:12px;text-decoration:none;color:var(--ink)}
+a.card:hover{border-color:var(--navy)}a.card b{display:block;font-size:17px}a.card span{color:var(--ink2);font-size:14px}
+small{color:var(--ink2)}
+</style></head><body><main>
+<h1>Alcovia assignment: live dashboards</h1>
+<p>Product, Systems and Analytics Lead take-home. Both dashboards are interactive prototypes running on dummy data.</p>
+<a class="card" href="dashboards/student_dashboard.html"><b>Student progress dashboard (Problem 4)</b><span>Advisor, parent, student and team views. Switch views with the buttons at the top.</span></a>
+<a class="card" href="dashboards/gtm_tracker.html"><b>GTM tracker (Problem 2)</b><span>Revenue, funnel, campaigns and campaign calls, with a timeline selector.</span></a>
+<small>All numbers are invented. See the README for how the dashboards map to the SQL and workflows in this repo.</small>
+</main></body></html>

@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alcovia student progress</title><meta name="description" content="Advisor and parent views of student progress. Dummy data.">
+<style>:root{color-scheme:light;--bg:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--border:rgba(11,11,11,.10);--wash:rgba(11,11,11,.05);
+--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--track:#cde2fb;--good:#0ca30c;--goodtext:#006300;--warn:#fab219;--serious:#ec835a;--crit:#d03b3b;--crittext:#a62a2a;
+--r250:#86b6ef;--r300:#6da7ec;--r350:#5598e7;--r400:#3987e5;--r450:#2a78d6;--r500:#256abf;--r550:#1c5cab;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);--wash:rgba(255,255,255,.06);
+--s1:#3987e5;--s2:#d95926;--s3:#199e70;--track:#0d366b;--good:#0ca30c;--goodtext:#0ca30c;--warn:#fab219;--serious:#ec835a;--crit:#d03b3b;--crittext:#e66767;
+--r250:#86b6ef;--r300:#6da7ec;--r350:#5598e7;--r400:#3987e5;--r450:#2a78d6;--r500:#256abf;--r550:#1c5cab;}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);--wash:rgba(255,255,255,.06);
+--s1:#3987e5;--s2:#d95926;--s3:#199e70;--track:#0d366b;--good:#0ca30c;--goodtext:#0ca30c;--warn:#fab219;--serious:#ec835a;--crit:#d03b3b;--crittext:#e66767;
+--r250:#86b6ef;--r300:#6da7ec;--r350:#5598e7;--r400:#3987e5;--r450:#2a78d6;--r500:#256abf;--r550:#1c5cab;}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px 56px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:20px 0 12px}
+header.top h1{font-size:20px;margin:0;font-weight:650;letter-spacing:-.01em}
+header.top .sub{color:var(--ink2);font-size:13px;margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--ink2);background:var(--surface)}
+.icon-btn{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--ink2)}
+.icon-btn:hover,.seg button:hover,.tabs button:hover{background:var(--wash)}
+.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 0 14px;border-bottom:1px solid var(--grid);margin-bottom:16px}
+.filters label{font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:8px}
+select.sel{appearance:none;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23898781' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;border:1px solid var(--border);border-radius:8px;padding:7px 28px 7px 10px;cursor:pointer;color:var(--ink)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px}
+.tabs button{border:0;background:transparent;padding:8px 14px;border-radius:8px;cursor:pointer;color:var(--ink2);font-weight:550}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--border)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:5px 11px;cursor:pointer;color:var(--ink2);font-size:12px}
+.seg button[aria-pressed="true"]{background:var(--wash);color:var(--ink);font-weight:600}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.tiles{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:0}
+.card h2{font-size:14px;margin:0;font-weight:650}
+.card .csub{color:var(--ink2);font-size:12px;margin-top:2px}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.sec{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px;font-weight:650}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;min-width:0}
+.tile .l{font-size:12px;color:var(--ink2)}
+.tile .v{font-size:24px;font-weight:650;margin-top:2px;letter-spacing:-.01em}
+.d{font-size:12px;margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;color:var(--ink2)}
+.tile svg{display:block;margin-top:6px}
+.hero{font-size:52px;font-weight:650;letter-spacing:-.02em;line-height:1.05}
+.hero small{font-size:16px;color:var(--ink2);font-weight:500;letter-spacing:0}
+.up-good{color:var(--goodtext)}.dn-bad{color:var(--crittext)}.neutral{color:var(--ink2)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--ink2);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.meter{height:10px;border-radius:6px;background:var(--track);position:relative;overflow:visible}
+.meter>b{position:absolute;left:0;top:0;bottom:0;border-radius:6px;display:block}
+.meter>u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink2);text-decoration:none}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-weight:600;text-align:left;color:var(--ink2);font-size:12px;padding:6px 10px 6px 0;border-bottom:1px solid var(--grid);white-space:nowrap}
+td{padding:8px 10px 8px 0;border-bottom:1px solid var(--grid);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+th+th,td+td{padding-left:14px}
+th:last-child,td:last-child{padding-right:0}
+.tw{overflow-x:auto}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap}
+.badge .ic{display:inline-flex;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;font-size:10px;color:#fff;line-height:1}
+.ic.good{background:var(--good)}.ic.warn{background:#b7791f}.ic.crit{background:var(--crit)}.ic.mute{background:var(--muted)}.ic.info{background:var(--s1)}
+.note{font-size:12px;color:var(--ink2);margin-top:10px}
+.tip{position:fixed;z-index:50;display:none;pointer-events:none;background:var(--surface);border:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.14);border-radius:8px;padding:8px 10px;font-size:12px;min-width:140px;max-width:260px}
+.tip-t{color:var(--ink2);margin-bottom:4px}
+.tip-r{display:flex;align-items:center;gap:6px;line-height:1.6}
+.tip-k{width:10px;height:3px;border-radius:2px;display:inline-block}
+.tip-l{color:var(--ink2)}
+.tip-r strong{min-width:52px}
+svg text{font-family:inherit}
+.ax{fill:var(--muted);font-size:11px}
+.lab{fill:var(--ink2);font-size:12px}
+.val{fill:var(--ink);font-size:12px;font-weight:600}
+.faded{opacity:.55;transition:opacity .15s}
+.empty{color:var(--ink2);padding:18px 0;font-size:13px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--grid);font-size:13px}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--ink2)}
+.list{margin:0;padding:0;list-style:none}
+.list li{padding:8px 0;border-bottom:1px solid var(--grid);display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+.list li:last-child{border-bottom:0}
+.back{border:0;background:transparent;color:var(--ink2);cursor:pointer;padding:4px 0;margin-bottom:8px;font-size:13px}
+.back:hover{color:var(--ink)}
+.clickable{cursor:pointer}
+.clickable:hover{border-color:var(--axis)}
+.clickable:focus-visible,.seg button:focus-visible,.tabs button:focus-visible,.back:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+@media (max-width:560px){.hero{font-size:40px}.two{grid-template-columns:1fr}}
+@media (forced-colors:active){.meter>b{forced-color-adjust:none}}
+</style></head>
+<body><div class="wrap" id="app"></div>
+<script>const NS='http://www.w3.org/2000/svg';
+function setAttrs(e,a){for(const k in (a||{})){const v=a[k];if(v==null||v===false)continue;
+ if(k==='class')e.setAttribute('class',v);else if(k==='text')e.textContent=v;
+ else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);
+ else if(k==='style'&&typeof v==='object')Object.assign(e.style,v);else e.setAttribute(k,v);}}
+function add(e,kids){for(const k of kids.flat(Infinity)){if(k==null||k===false)continue;e.append(k.nodeType?k:document.createTextNode(String(k)));}}
+function h(tag,attrs,...kids){const e=document.createElement(tag);setAttrs(e,attrs);add(e,kids);return e;}
+function s(tag,attrs,...kids){const e=document.createElementNS(NS,tag);setAttrs(e,attrs);add(e,kids);return e;}
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* formatting */
+const nf=new Intl.NumberFormat('en-IN');
+const fmtN=n=>nf.format(Math.round(n));
+function fmtINR(n){const a=Math.abs(n);if(a>=1e7)return '₹'+(n/1e7).toFixed(2)+' Cr';if(a>=1e5)return '₹'+(n/1e5).toFixed(1)+' L';if(a>=1e4)return '₹'+(n/1e3).toFixed(0)+'K';return '₹'+fmtN(n);}
+const pct=(x,d=1)=>(x*100).toFixed(d)+'%';
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtD=d=>d.getDate()+' '+MON[d.getMonth()];
+function compactTick(v){if(v>=1e7)return (v/1e7)+'Cr';if(v>=1e5)return (v/1e5)+'L';if(v>=1e3)return (v/1e3)+'K';return String(v);}
+function niceMax(v){if(!(v>0))return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const f=v/p;const n=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10;return n*p;}
+
+/* tooltip: values lead, labels follow; textContent only */
+const tip=h('div',{class:'tip',role:'status'});document.body.append(tip);
+function moveTip(e){const pad=14;let x=e.clientX+pad,y=e.clientY+pad;const r=tip.getBoundingClientRect();
+ if(x+r.width>innerWidth-8)x=e.clientX-r.width-pad;if(y+r.height>innerHeight-8)y=e.clientY-r.height-pad;
+ tip.style.left=Math.max(8,x)+'px';tip.style.top=Math.max(8,y)+'px';}
+function showTip(e,title,rows){tip.replaceChildren(h('div',{class:'tip-t'},title));
+ rows.forEach(r=>tip.append(h('div',{class:'tip-r'},r.color?h('span',{class:'tip-k',style:{background:r.color}}):null,h('strong',{},r.value),h('span',{class:'tip-l'},r.label||''))));
+ tip.style.display='block';moveTip(e);}
+function hideTip(){tip.style.display='none';}
+function hover(node,title,rows){const f=e=>showTip(e,typeof title==='function'?title():title,typeof rows==='function'?rows():rows);
+ node.addEventListener('pointerenter',f);node.addEventListener('pointermove',moveTip);node.addEventListener('pointerleave',hideTip);
+ node.addEventListener('focus',()=>{const r=node.getBoundingClientRect();f({clientX:r.left+r.width/2,clientY:r.top});});
+ node.addEventListener('blur',hideTip);node.setAttribute('tabindex','0');}
+
+/* responsive svg: redraw at the container's real width */
+function responsive(draw){const box=h('div',{style:{width:'100%'}});let last=0;
+ const go=()=>{const w=Math.floor(box.clientWidth);if(!w||w===last)return;last=w;box.replaceChildren(draw(w));};
+ if(window.ResizeObserver)new ResizeObserver(go).observe(box);else addEventListener('resize',go);
+ requestAnimationFrame(go);return box;}
+
+function barPath(x,y,w,hh,r){if(hh<=0)return '';r=Math.min(r,w/2,hh);return `M${x},${y+hh}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+hh}Z`;}
+function hPath(x,y,w,hh,r){if(w<=0)return '';r=Math.min(r,hh/2,w);return `M${x},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+hh-r}Q${x+w},${y+hh} ${x+w-r},${y+hh}H${x}Z`;}
+
+/* horizontal bars: rows [{label,value,color,text,tipTitle,tipRows,sub}] */
+function hbars(rows,width,o){o=o||{};const labelW=o.labelW||Math.min(190,Math.round(width*.38)),rightW=o.rightW||90,bh=o.bh||18,gap=o.gap||12;
+ const max=o.max||Math.max(...rows.map(r=>r.value))||1;const H=rows.length*(bh+gap)+6;const pw=Math.max(40,width-labelW-rightW);
+ const svg=s('svg',{width,height:H,role:'img','aria-label':o.aria||'Bar chart'});
+ rows.forEach((r,i)=>{const y=i*(bh+gap)+4;const g=s('g',{});
+  g.append(s('text',{x:0,y:y+bh/2+4,class:'lab'},r.label.length>34&&labelW<200?r.label.slice(0,32)+'…':r.label));
+  g.append(s('line',{x1:labelW,x2:labelW,y1:y-3,y2:y+bh+3,stroke:cssv('--axis')}));
+  const w=Math.max(0,r.value/max*pw);
+  g.append(s('path',{d:hPath(labelW,y,w,bh,4),fill:r.color||cssv('--s1')}));
+  g.append(s('text',{x:labelW+w+8,y:y+bh/2+4,class:'val'},r.text));
+  const hit=s('rect',{x:0,y:y-gap/2,width,height:bh+gap,fill:'transparent'});if(r.tipRows)hover(hit,r.tipTitle||r.label,r.tipRows);g.append(hit);svg.append(g);});
+ return svg;}
+
+/* sparkline: de-emphasis gray, current point in accent */
+function spark(vals,w,hh){w=w||110;hh=hh||26;const mx=Math.max(...vals),mn=Math.min(...vals);const rg=(mx-mn)||1;
+ const pts=vals.map((v,i)=>[2+i*(w-8)/(Math.max(vals.length-1,1)),hh-4-(v-mn)/rg*(hh-8)]);
+ const svg=s('svg',{width:w,height:hh,'aria-hidden':'true'});
+ svg.append(s('polyline',{points:pts.map(p=>p.join(',')).join(' '),fill:'none',stroke:cssv('--muted'),'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+ const l=pts[pts.length-1];svg.append(s('circle',{cx:l[0],cy:l[1],r:4,fill:cssv('--s1'),stroke:cssv('--surface'),'stroke-width':2}));return svg;}
+
+function delta(cur,prev,goodUp,suffix){if(!(prev>0))return h('div',{class:'d'},'No earlier period');const c=(cur-prev)/prev;const up=c>=0;
+ const cls=Math.abs(c)<.005?'neutral':(up===goodUp?'up-good':'dn-bad');
+ return h('div',{class:'d'},h('span',{class:cls},(up?'▲ +':'▼ ')+(c*100).toFixed(1)+'%'),h('span',{},suffix||'vs previous period'));}
+
+function badge(kind,text){const sym={good:'✓',warn:'!',crit:'✕',mute:'•',info:'i'}[kind];return h('span',{class:'badge'},h('span',{class:'ic '+kind,'aria-hidden':'true'},sym),text);}
+
+function table(cols,rows){const t=h('table',{},h('thead',{},h('tr',{},cols.map(c=>h('th',{class:c.n?'n':''},c.h)))),
+ h('tbody',{},rows.map(r=>h('tr',{},cols.map((c,i)=>h('td',{class:c.n?'n':''},r[i]))))));return h('div',{class:'tw'},t);}
+
+function seg(options,value,onChange){const wrap=h('div',{class:'seg',role:'group'});
+ options.forEach(o=>{const b=h('button',{type:'button','aria-pressed':String(o.id===value),onclick:()=>{onChange(o.id);}},o.label);wrap.append(b);});return wrap;}
+
+/* chart/table twin card */
+function chartCard(o){let mode='chart';const body=h('div',{});const head=h('div',{class:'card-h'});const card=h('div',{class:'card'},head,body);
+ const draw=()=>{head.replaceChildren(h('div',{},h('h2',{},o.title),o.sub?h('div',{class:'csub'},o.sub):null),
+   o.table?seg([{id:'chart',label:'Chart'},{id:'table',label:'Table'}],mode,m=>{mode=m;draw();}):null);
+  body.replaceChildren(...[...(mode==='chart'?[o.legend,o.chart()]:[o.table()]),o.note?h('div',{class:'note'},o.note):null].filter(Boolean));};
+ draw();return card;}
+
+function legend(items){return h('div',{class:'legend'},items.map(i=>h('span',{},h('i',{style:{background:i.color}}),i.label)));}
+
+/* theme toggle */
+function themeToggle(onChange){const b=h('button',{class:'icon-btn',type:'button','aria-label':'Toggle light or dark theme'},'Theme');
+ b.addEventListener('click',()=>{const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  document.documentElement.setAttribute('data-theme',cur==='dark'?'light':'dark');onChange&&onChange();});return b;}
+
+/* seeded random */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ===== dummy data: every student, mark and session below is invented ===== */
+const TODAY=new Date(2026,9,23);
+const R=mulberry32(7741);
+const rnd=(a,b)=>a+R()*(b-a);
+const ri=(a,b)=>Math.floor(rnd(a,b+1));
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const dayMs=864e5;
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const sameDay=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+const daysFrom=d=>Math.round((d-TODAY)/dayMs);       // negative = past
+const SUBJECTS=['Maths','Physics','Chemistry','English','Social Science'];
+const NCH=12, PLAN=.58;                               // 12 chapters per subject; plan = 25% per quarter, about 2.3 quarters in
+const STAGES=['Not started','Reading','Notes done','Practice above 70%','Past paper, timed','Exam ready (80%+)'];
+const SKILLS=['Engagement','Teamwork','Crisis management','Adaptability','Public speaking','Communication'];
+const EVTYPES=[{id:'adv',label:'Advisor sessions'},{id:'ws',label:'Workshops'},{id:'pod',label:'Pod sessions'},{id:'peer',label:'Peer sessions'},{id:'mentor',label:'Mentor calls'},{id:'pc',label:'Parent-child workshop'}];
+const evLabel=id=>EVTYPES.find(e=>e.id===id).label;
+const ADVISORS=['Rhea Kulkarni','Sameer Joshi','Pooja Anand'];
+const EXAMS_PAST=[{id:'FA1',label:'Formative 1',date:new Date(2026,5,20)},{id:'UT1',label:'Unit test 1',date:new Date(2026,7,8)},{id:'MT',label:'Mid-term',date:new Date(2026,8,19)},{id:'UT2',label:'Unit test 2',date:new Date(2026,9,10)}];
+const EXAMS_NEXT=[{subj:'Maths',date:new Date(2026,10,10)},{subj:'Physics',date:new Date(2026,10,12)},{subj:'Chemistry',date:new Date(2026,10,14)},{subj:'English',date:new Date(2026,10,17)},{subj:'Social Science',date:new Date(2026,10,19)}].map(e=>({...e,label:'Half-yearly: '+e.subj}));
+
+/* name, class, board, ability, activity, attendance, wearable, trend, strong, weak */
+const SEED=[
+ ['Aarav Mehta',10,'CBSE',.80,.85,.92,1,2.5,'Maths','Physics'],
+ ['Diya Nair',9,'ICSE',.70,.70,.88,0,1,'English',null],
+ ['Kabir Singh',11,'CBSE',.35,.08,.45,0,-3,null,'Chemistry'],
+ ['Ananya Rao',12,'IB',.85,.90,.95,1,1.5,'Chemistry',null],
+ ['Vihaan Gupta',10,'CBSE',.55,.50,.70,0,0,null,'Maths'],
+ ['Saanvi Iyer',9,'CBSE',.75,.80,.90,0,2,'Social Science',null],
+ ['Reyansh Kapoor',11,'ICSE',.60,.55,.78,0,.5,'Physics',null],
+ ['Myra Shah',10,'ICSE',.78,.75,.86,1,1,'English','Chemistry'],
+ ['Arjun Reddy',12,'CBSE',.50,.40,.62,0,-1.5,null,'English'],
+ ['Anika Bose',9,'ICSE',.68,.65,.84,0,1,'Social Science',null],
+ ['Ishaan Malhotra',10,'CBSE',.58,.35,.58,0,-4,'Maths',null],
+ ['Riya Sharma',11,'IB',.92,.95,.97,1,1.5,'Maths',null],
+ ['Dev Khanna',10,'CBSE',.62,.60,.74,0,0,null,'Social Science'],
+ ['Meera Pillai',12,'CBSE',.72,.70,.85,0,1,'English',null],
+ ['Aarush Bhatia',9,'ICSE',.48,.45,.66,0,-.5,null,'Physics'],
+ ['Tara Menon',11,'CBSE',.66,.68,.82,1,.5,'Chemistry',null],
+ ['Neil Joshi',10,'IB',.74,.72,.89,0,1.5,null,'English'],
+ ['Kiara Das',12,'ICSE',.64,.55,.76,0,0,'Social Science','Maths'],
+ ['Rohan Verma',9,'CBSE',.57,.50,.72,0,.5,null,null],
+ ['Zara Khan',11,'CBSE',.70,.62,.80,0,1,'Physics',null]];
+
+/* ----- global events (shared by everyone) ----- */
+function weekdayDates(wd,from,to){const out=[];for(let d=addDays(TODAY,from);d<=addDays(TODAY,to);d=addDays(d,1))if(d.getDay()===wd)out.push(new Date(d));return out;}
+const GEV=[];
+weekdayDates(2,-90,35).forEach(d=>GEV.push({type:'adv',date:d,held:true}));
+for(let k=-6;k<=2;k++){const d=addDays(new Date(2026,9,17),14*k);if(daysFrom(d)>=-90&&daysFrom(d)<=35)GEV.push({type:'ws',date:d,held:!(k===-3)});}   // one workshop cancelled
+[new Date(2026,7,12),new Date(2026,8,16),new Date(2026,9,14),new Date(2026,10,11)].forEach(d=>GEV.push({type:'pod',date:d,held:true}));
+[new Date(2026,7,7),new Date(2026,8,11),new Date(2026,9,9),new Date(2026,10,6)].forEach(d=>GEV.push({type:'peer',date:d,held:true}));
+[new Date(2026,8,27),new Date(2026,11,13)].forEach(d=>GEV.push({type:'pc',date:d,held:true}));
+const WS_TITLES={};GEV.filter(e=>e.type==='ws').sort((a,b)=>a.date-b.date).forEach((e,i)=>{e.title=['Career simulation: Product management','Career simulation: Law','Career simulation: Medicine','Career simulation: Entrepreneurship','Career simulation: Finance','Career simulation: Design','Career simulation: Journalism'][i%7];});
+GEV.forEach(e=>{if(!e.title)e.title=evLabel(e.type);});
+
+/* ----- build each student ----- */
+const STUDENTS=SEED.map((z,i)=>{
+ const st={id:i,name:z[0],cls:z[1],board:z[2],ab:z[3],act:z[4],att:z[5],wear:!!z[6],slope:z[7],strong:z[8],weak:z[9],advisor:ADVISORS[i%3]};
+ st.first=st.name.split(' ')[0];
+ /* chapters */
+ st.subj=SUBJECTS.map(sn=>{let comp=PLAN*st.ab*rnd(.9,1.1)*1.35;if(sn===st.strong)comp+=.16;if(sn===st.weak)comp-=.26;comp=clamp(comp,.06,1);
+  const covered=Math.round(NCH*comp);const ch=[];
+  for(let c=0;c<NCH;c++){let stg=0,acc=null;
+   if(c<covered){stg=clamp(Math.round(2+st.ab*3.4-(c/Math.max(covered,1))*1.9+rnd(-.6,.6)),2,5);if(stg>=3)acc=Math.round(rnd(70,93));}
+   else if(c===covered&&R()<.7)stg=1;
+   ch.push({n:c+1,stage:stg,acc});}
+  const cov=ch.filter(x=>x.stage>=2);
+  return{name:sn,ch,covered:cov.length,comp:cov.length/NCH,ready:cov.length?cov.reduce((t,x)=>t+x.stage/5,0)/cov.length:0};});
+ st.syl=st.subj.reduce((t,x)=>t+x.comp,0)/SUBJECTS.length;
+ st.rdy=st.subj.reduce((t,x)=>t+x.ready,0)/SUBJECTS.length;
+ /* marks */
+ st.target=SUBJECTS.map(sn=>clamp(Math.round((50+st.ab*30+(sn===st.strong?4:0))/5)*5+5,65,90));
+ st.marks=EXAMS_PAST.map((ex,k)=>({ex,v:SUBJECTS.map((sn,si)=>clamp(Math.round(40+st.ab*42+(sn===st.strong?9:0)-(sn===st.weak?14:0)+st.slope*k+rnd(-5,5)),32,98)),
+  verified:!(k===3&&R()<.35)}));
+ /* day-by-day activity, last 90 days */
+ st.days=[];for(let d=-89;d<=0;d++){const dt=addDays(TODAY,d);const wkd=dt.getDay();const inactiveRun=(st.id===2&&d>-12);
+  const on=!inactiveRun&&R()<st.act*(wkd===0?.7:1);
+  st.days.push({date:dt,focus:on?Math.round(rnd(20,75)*(.6+st.act*.6)):0,quiz:!inactiveRun&&R()<st.act*.95,quizScore:Math.round(rnd(45,98)*(.7+st.ab*.3)),
+   tasksA:wkd===0?0:3,tasksD:wkd===0?0:Math.round(3*clamp(st.ab*.7+st.act*.4+rnd(-.2,.2),0,1)),active:st.wear&&R()<.85?Math.round(rnd(25,95)):null});}
+ return st;});
+
+/* ----- per-student events (attendance, ratings, soft skills) ----- */
+STUDENTS.forEach(st=>{st.events=[];
+ GEV.forEach(e=>{const rec={type:e.type,date:e.date,held:e.held,title:e.title,attended:null,rating:null,skills:null};
+  if(daysFrom(e.date)<=0&&e.held){const p=clamp(st.att*({adv:1.02,ws:.95,pod:.97,peer:.97,pc:.9}[e.type]||1),0,1);rec.attended=R()<p;
+   if(rec.attended&&R()<.72)rec.rating=clamp(Math.round(4.2+rnd(-1.4,.8)),2,5);
+   if(rec.attended&&e.type==='ws')rec.skills=SKILLS.map(()=>clamp(Math.round(2.4+st.ab*2+rnd(-.9,.9)),1,5));}
+  st.events.push(rec);});
+ [-67,-37,-9,21].forEach((o,k)=>{const d=addDays(TODAY,o+((st.id*3)%7));const past=daysFrom(d)<=0;
+  st.events.push({type:'mentor',date:d,held:true,title:'Mentor call',attended:past?R()<clamp(st.att*.9,0,1):null,rating:past&&R()<.7?clamp(Math.round(4.3+rnd(-1,.6)),2,5):null,skills:null});});
+ st.events.sort((a,b)=>a.date-b.date);});
+
+/* ----- period helpers ----- */
+const PERIODS=[{id:'week',label:'Week',len:7},{id:'month',label:'Month',len:30},{id:'quarter',label:'Quarter',len:90}];
+const plen=p=>PERIODS.find(x=>x.id===p).len;
+function attendance(st,p){const len=plen(p);const out={};EVTYPES.forEach(t=>out[t.id]={att:0,plan:0});
+ st.events.forEach(e=>{const d=daysFrom(e.date);if(d<=0&&d>-len&&e.held){out[e.type].plan++;if(e.attended)out[e.type].att++;}});return out;}
+function attRate(st,p){const a=attendance(st,p);let x=0,y=0;for(const k in a){x+=a[k].att;y+=a[k].plan;}return y?x/y:null;}
+function activity(st,p){const len=plen(p);const ds=st.days.slice(-len);const n=ds.length;
+ const act=ds.filter(d=>d.focus>0||d.quiz).length;const q=ds.filter(d=>d.quiz);const tA=ds.reduce((t,d)=>t+d.tasksA,0),tD=ds.reduce((t,d)=>t+d.tasksD,0);const w=ds.filter(d=>d.active!=null);
+ return{focusAvg:ds.reduce((t,d)=>t+d.focus,0)/n,daysActive:act,len:n,quizDays:q.length,quizAvg:q.length?q.reduce((t,d)=>t+d.quizScore,0)/q.length:null,taskRate:tA?tD/tA:null,activeAvg:w.length?w.reduce((t,d)=>t+d.active,0)/w.length:null,streak:streakOf(st)};}
+function streakOf(st){let s=0;for(let i=st.days.length-1;i>=0;i--){if(st.days[i].quiz)s++;else if(i===st.days.length-1)continue;else break;}return s;}
+const avgOf=(arr,f)=>{const v=arr.map(f).filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;};
+const COH={syl:avgOf(STUDENTS,s=>s.syl),rdy:avgOf(STUDENTS,s=>s.rdy)};
+function cohAct(p){return{focusAvg:avgOf(STUDENTS,s=>activity(s,p).focusAvg),daysActive:avgOf(STUDENTS,s=>activity(s,p).daysActive),taskRate:avgOf(STUDENTS,s=>activity(s,p).taskRate),quizAvg:avgOf(STUDENTS,s=>activity(s,p).quizAvg)};}
+function cohAtt(p){return avgOf(STUDENTS,s=>attRate(s,p));}
+function cohSubj(si){return{comp:avgOf(STUDENTS,s=>s.subj[si].comp),ready:avgOf(STUDENTS,s=>s.subj[si].ready)};}
+function examAvg(st,k){return st.marks[k].v.reduce((a,b)=>a+b,0)/SUBJECTS.length;}
+function cohExam(k,si){return avgOf(STUDENTS,s=>si==null?examAvg(s,k):s.marks[k].v[si]);}
+const lastDays=(st,n)=>st.days.slice(-n);
+
+/* ----- flags for the advisor ----- */
+function flagsOf(st){const f=[];
+ if(st.syl<PLAN-.15)f.push({k:'behind',t:`Syllabus ${Math.round((PLAN-st.syl)*100)} points behind plan`});
+ const ar=attRate(st,'month');if(ar!=null&&ar<.6)f.push({k:'att',t:`Attended ${Math.round(ar*100)}% of sessions this month`});
+ const last7=lastDays(st,7);if(!last7.some(d=>d.focus>0||d.quiz))f.push({k:'inactive',t:'No app activity for 7 days'});
+ const m=st.marks.map((_,k)=>examAvg(st,k));if(m[3]<m[2]-1&&m[2]<m[1]-1)f.push({k:'marks',t:'Marks have fallen across the last two exams'});
+ EXAMS_NEXT.forEach(e=>{const si=SUBJECTS.indexOf(e.subj);if(daysFrom(e.date)<=21&&st.subj[si].ready<.45)f.push({k:'prep',subj:e.subj,days:daysFrom(e.date),t:`${e.subj} exam in ${daysFrom(e.date)} days, readiness ${Math.round(st.subj[si].ready*100)}%`});});
+ if(!st.marks[3].verified)f.push({k:'verify',t:'Latest marks waiting for verification',soft:true});
+ return f;}
+function statusOf(st){const f=flagsOf(st).filter(x=>!x.soft);const inact=f.some(x=>x.k==='inactive');return f.length>=2||inact?'crit':f.length===1?'warn':'good';}
+
+/* ----- team view data. Week 1 baseline (2.15) and the adoption table come from the brief; later weeks are dummy values for the Phase 1 plan ----- */
+const ENG_WEEKS=['Wk 1','Wk 2','Wk 3','Wk 4','Wk 5','Wk 6','Wk 7','Wk 8'];
+const ENG_ACTIVE=[2.15,2.6,3.5,4.6,5.8,7.0,8.2,9.0], ENG_FOCUS=[0,1.0,2.6,5.2,8.4,11.5,14.2,17.1];
+const GOAL_MIN=30;
+const WAU=[13,13,14,15,16,17,18,18], REGULAR=[5,6,7,8,9,10,11,12];
+const ADOPT=[{name:'Home',d45:1,d7:1},{name:'Focus and game',d45:.75,d7:.54},{name:'Study',d45:.65,d7:.15},{name:'Plan',d45:.65,d7:.46},{name:'Wellness',d45:.60,d7:.15},{name:'Other (profile, notifications)',d45:.40,d7:.31}];
+const FEEDBACK=[
+ {who:'Class 10, CBSE',about:'Workshop',rating:5,text:'The law simulation was fun. I want more of these.'},
+ {who:'Class 12, IB',about:'Daily quiz',rating:4,text:'Quiz is good but I can only do it after coaching, 8pm is late.'},
+ {who:'Class 9, ICSE',about:'Pod session',rating:4,text:'Nice to talk to others my age. Two hours felt long.'},
+ {who:'Class 11, CBSE',about:'App',rating:3,text:'Home shows too many things. I just want to know what to do today.'},
+ {who:'Parent, Class 10',about:'Parent-child workshop',rating:5,text:'We finally talked about career options together.'},
+ {who:'Class 11, IB',about:'Advisor session',rating:4,text:'Helpful, but I would like the chapter plan to update itself.'}];
+
+/* ===== interface: first screen = what matters, second screen = the deep analysis ===== */
+const app=document.getElementById('app');
+const state={role:'advisor',view:'cohort',sid:0,period:'month',subj:null,tsubj:-1,share:false,done:{}};
+const S=()=>STUDENTS[state.sid];
+const isStudent=()=>state.role==='student';
+const isParent=()=>state.role==='parent'||state.role==='student';   // "family" views: no cohort data, no advisor-only items
+const ROLE_HOME={advisor:'cohort',parent:'child',student:'child',team:'team'};
+const rp=x=>x==null?'No data':Math.round(x*100)+'%';
+const go=(view,extra)=>{Object.assign(state,{view},extra||{});render();scrollTo({top:0});};
+const periodLabel=()=>({week:'this week',month:'this month',quarter:'this quarter'}[state.period]);
+const latestVerified=s=>{for(let k=s.marks.length-1;k>=0;k--)if(s.marks[k].verified)return k;return 0;};
+const visibleMarks=s=>isParent()?s.marks.filter(m=>m.verified):s.marks;
+const sRamp=()=>['--r300','--r350','--r400','--r450','--r500'].map(cssv);
+const ONE={adv:'Advisor session',ws:'Workshop',pod:'Pod session',peer:'Peer session',mentor:'Mentor call',pc:'Parent-child workshop'};
+const sectionTitle=t=>h('div',{class:'sec'},t);
+const s2=(...a)=>s(...a);
+const you=s=>isStudent()?'you':s.first;
+function statTile(label,val,d,sp){return h('div',{class:'tile'},h('div',{class:'l'},label),h('div',{class:'v'},val),d,sp?spark(sp):null);}
+function meterPlan(frac,plan,color){return h('div',{class:'meter',role:'img','aria-label':`${Math.round(frac*100)} percent`+(plan!=null?`, plan ${Math.round(plan*100)} percent`:'')},
+ h('b',{style:{width:Math.min(100,frac*100)+'%',background:color||cssv('--s1')}}),plan!=null?h('u',{style:{left:Math.min(100,plan*100)+'%'},title:'Plan for today'}):null);}
+function subjStatus(sub){const d=sub.comp-PLAN;
+ if(isParent())return d>=-.03?badge('good','Going well'):d>=-.15?badge('mute','Building up'):badge('warn','Needs attention');
+ const pts=Math.round(Math.abs(d)*100);return d>=.03?badge('good','Ahead by '+pts+' pts'):d>=-.03?badge('mute','On plan'):d>=-.25?badge('warn',pts+' pts behind'):badge('crit',pts+' pts behind');}
+function stageBar(stage){const R=sRamp();const svg=s('svg',{width:84,height:10,role:'img','aria-label':STAGES[stage]});
+ for(let k=0;k<5;k++)svg.append(s('rect',{x:k*17,y:0,width:15,height:10,rx:2,fill:k<stage?R[k]:cssv('--track')}));return svg;}
+function backBtn(label,fn){return h('button',{class:'back',type:'button',onclick:fn},'← '+label);}
+function openCard(title,view,body,extra){const open=()=>go(view,Object.assign({subj:null},extra||{}));
+ return h('div',{class:'card clickable',role:'button',tabindex:'0',onclick:open,onkeydown:e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}}},
+  h('div',{class:'card-h',style:{marginBottom:'8px'}},h('h2',{},title),h('span',{class:'neutral'},'Details →')),body);}
+const big=(v,sub)=>h('div',{},h('div',{style:{fontSize:'26px',fontWeight:650,letterSpacing:'-.01em'}},v),sub?h('div',{class:'note',style:{margin:'0'}},sub):null);
+const backChild=s=>backBtn(isParent()?'Back to overview':'Back to '+s.first,()=>go('child'));
+
+/* ---------- tasks ---------- */
+function advisorTasks(sid){const out=[];
+ STUDENTS.forEach(s=>{if(sid!=null&&s.id!==sid)return;const nf=flagsOf(s).filter(x=>!x.soft).length;
+  flagsOf(s).forEach(f=>{let t,urg,due;const lc=f.t.charAt(0).toLowerCase()+f.t.slice(1);
+   if(f.k==='inactive'){t=`Call ${s.first}'s parent: ${lc}`;urg=1;due='Today';}
+   else if(f.k==='prep'){t=`Plan revision with ${s.first}: ${lc}`;urg=f.days<=14?1:2;due=f.days<=14?'Today':'This week';}
+   else if(f.k==='behind'){t=`Agree a catch-up plan with ${s.first}: ${lc}`;urg=2;due='This week';}
+   else if(f.k==='att'){t=`Check in with ${s.first}: ${lc}`;urg=2;due='This week';}
+   else if(f.k==='marks'){t=`Talk through ${s.first}'s marks with the family: ${lc}`;urg=2;due='This week';}
+   else{t=`Verify ${s.first}'s latest marks`;urg=3;due='At the weekly review';}
+   out.push({id:s.id+':'+f.k+(f.subj||''),sid:s.id,name:s.name,text:t,urg,due,nf});});});
+ out.sort((a,b)=>a.urg-b.urg||b.nf-a.nf||a.name.localeCompare(b.name));return out;}
+function topTasks(list,n){const seen={},out=[];list.forEach(t=>{seen[t.sid]=(seen[t.sid]||0)+1;if(seen[t.sid]<=2&&out.length<n)out.push(t);});return out;}
+function studentTasks(s){const out=[];const weak=[...s.subj].sort((a,b)=>a.comp-b.comp)[0];
+ if(!s.days[s.days.length-1].quiz)out.push({id:s.id+':quiz',text:"Take today's daily quiz",src:'Daily',due:'Today',urg:0});
+ out.push({id:s.id+':next',text:`${weak.name}: start Chapter ${Math.min(NCH,weak.covered+1)}`,src:'Set by '+s.advisor,due:'In 3 days',urg:1});
+ out.push({id:s.id+':sheet',text:'Upload the half-yearly date sheet',src:'Set by '+s.advisor,due:'In 2 days',urg:1});
+ const prac=s.subj.map(x=>({x,c:x.ch.find(c=>c.stage===3)})).find(z=>z.c);
+ if(prac)out.push({id:s.id+':paper',text:`${prac.x.name}: timed past paper for Chapter ${prac.c.n}`,src:'Own plan',due:'In 5 days',urg:2});
+ return out.sort((a,b)=>a.urg-b.urg);}
+function taskRow(t,canTick,showWho){const done=!!state.done[t.id];
+ const box=h('input',{type:'checkbox','aria-label':'Mark done',disabled:canTick?null:'disabled'});box.checked=done;box.addEventListener('change',()=>{state.done[t.id]=box.checked;render();});
+ return h('li',{style:{alignItems:'center'}},h('div',{style:{display:'flex',gap:'10px',alignItems:'flex-start',minWidth:0}},box,h('div',{style:{minWidth:0}},
+  h('div',{style:{fontWeight:600,textDecoration:done?'line-through':'none',color:done?'var(--ink2)':'var(--ink)'}},t.text),
+  h('div',{class:'note',style:{margin:'2px 0 0'}},(showWho&&t.name?h('a',{href:'#',style:{color:'inherit'},onclick:e=>{e.preventDefault();go('child',{sid:t.sid});}},t.name):t.src||'')))),
+  h('span',{class:'neutral',style:{whiteSpace:'nowrap'}},t.due));}
+
+/* ---------- strengths and areas, in words a family can use ---------- */
+function strengthsAreas(s){const k=latestVerified(s);const strengths=[],areas=[];
+ s.subj.forEach((sub,i)=>{const mk=s.marks[k].v[i],tg=s.target[i];const ahead=sub.comp>=PLAN-.03;const good=mk>=tg;
+  if(ahead||good)strengths.push({subj:sub.name,text:(ahead?(sub.comp>=PLAN+.03?'ahead of plan':'on plan'):'building steadily')+(good?', marks at or above target':''),score:(ahead?1:0)+(good?1:0)+sub.comp});
+  const behind=Math.round(NCH*(PLAN-sub.comp));if(sub.comp<PLAN-.15||mk<tg-12)areas.push({subj:sub.name,text:(behind>0?behind+' chapters to catch up on. ':'')+'A short, regular study slot will help close the gap.',score:PLAN-sub.comp});});
+ strengths.sort((a,b)=>b.score-a.score);areas.sort((a,b)=>b.score-a.score);return{strengths:strengths.slice(0,3),areas:areas.slice(0,3)};}
+function familySummary(s){const {strengths,areas}=strengthsAreas(s);
+ const li=(x,c)=>h('li',{style:{padding:'8px 0',display:'block'}},h('div',{},badge(c,x.subj),h('div',{class:'note',style:{margin:'2px 0 0'}},x.text)));
+ return h('div',{class:'two'},h('div',{},h('div',{style:{fontWeight:650,marginBottom:'4px'}},isStudent()?'Where you are strong':'Where '+s.first+' is strong'),h('ul',{class:'list'},strengths.length?strengths.map(x=>li(x,'good')):h('li',{},'Building a base across subjects.'))),
+  h('div',{},h('div',{style:{fontWeight:650,marginBottom:'4px'}},'Where to focus next'),h('ul',{class:'list'},areas.length?areas.map(x=>li(x,'info')):h('li',{},'Nothing needs attention right now.'))));}
+
+/* ---------- upcoming ---------- */
+function upcomingItems(s){const out=[];
+ s.events.forEach(e=>{const d=daysFrom(e.date);if(d>=0&&d<=35)out.push({date:e.date,title:e.type==='ws'?e.title:ONE[e.type],kind:e.type});});
+ EXAMS_NEXT.forEach(e=>{const si=SUBJECTS.indexOf(e.subj);out.push({date:e.date,title:e.label,exam:true,si,ready:s.subj[si].ready,kind:'exam'});});
+ out.sort((a,b)=>a.date-b.date);
+ out.forEach(x=>{if(!x.exam&&x.kind!=='adv'){const near=EXAMS_NEXT.find(e=>Math.abs((e.date-x.date)/dayMs)<=2);if(near)x.clash=near;}});return out;}
+
+/* =====================  FIRST SCREENS  ===================== */
+/* ---- child / student main screen ---- */
+function childMain(){const s=S();const f=h('div',{});const p=state.period;const at=attendance(s,p);const ac=activity(s,p);let a=0,b=0;for(const t in at){a+=at[t].att;b+=at[t].plan;}
+ if(!isParent())f.append(backBtn('Back to your tasks',()=>go('cohort')));
+ const stt=statusOf(s);
+ f.append(h('div',{class:'card',style:{marginBottom:'14px'}},h('div',{class:'card-h'},h('div',{},h('h2',{style:{fontSize:'18px'}},isStudent()?'Hi '+s.first:s.name),h('div',{class:'csub'},`Class ${s.cls}, ${s.board} · Advisor: ${s.advisor}`)),
+  isParent()?null:badge(stt==='good'?'good':stt==='warn'?'warn':'crit',stt==='good'?'On track':stt==='warn'?'Needs a look':'Needs attention')),
+  isParent()?familySummary(s):h('div',{},h('div',{style:{fontWeight:650,marginBottom:'4px'}},'Your actions for '+s.first),(()=>{const t=advisorTasks(s.id);return t.length?h('ul',{class:'list'},t.slice(0,3).map(x=>taskRow(x,true,false))):h('div',{class:'note',style:{margin:0}},'Nothing to do for this student right now.');})())));
+ if(isParent()){const tk=studentTasks(s).filter(x=>!state.done[x.id]);
+  f.append(h('div',{class:'card clickable',style:{marginBottom:'14px'},role:'button',tabindex:'0',onclick:()=>go('tasks'),onkeydown:e=>{if(e.key==='Enter')go('tasks');}},
+   h('div',{class:'card-h',style:{marginBottom:'6px'}},h('h2',{},isStudent()?'Your tasks':'Tasks at hand for '+s.first),h('span',{class:'neutral'},'All tasks →')),
+   tk.length?h('ul',{class:'list'},tk.slice(0,3).map(x=>h('li',{style:{padding:'6px 0'}},h('div',{},h('div',{style:{fontWeight:600}},x.text),h('div',{class:'note',style:{margin:'2px 0 0'}},x.src)),h('span',{class:'neutral'},x.due)))):h('div',{class:'empty'},'All done for now.')));}
+ const k=latestVerified(s);const mk=s.marks.map((_,i)=>examAvg(s,i));const tgAvg=s.target.reduce((x,y)=>x+y,0)/SUBJECTS.length;
+ const prog=h('div',{},h('div',{class:'two'},big(rp(s.syl),'Syllabus covered, plan '+rp(PLAN)),big(rp(s.rdy),'Chapter readiness')),h('div',{style:{marginTop:'12px'}},meterPlan(s.syl,PLAN)),
+  isParent()?null:h('div',{class:'note'},'Cohort average: syllabus '+rp(COH.syl)+', readiness '+rp(COH.rdy)));
+ const part=h('div',{},h('div',{class:'two'},big(a+' of '+b,'Sessions attended '+periodLabel()),big(ac.daysActive+' of '+ac.len,'Days active in the app')),h('div',{style:{marginTop:'12px'}},meterPlan(b?a/b:0,null)),
+  isParent()?null:h('div',{class:'note'},'Cohort average attendance: '+rp(cohAtt(p))));
+ const nxt=upcomingItems(s).slice(0,3);
+ const up=h('ul',{class:'list'},nxt.map(x=>h('li',{style:{padding:'6px 0'}},h('div',{},h('div',{style:{fontWeight:600}},x.title),h('div',{class:'note',style:{margin:0}},fmtD(x.date)+(x.exam?' · exam':''))),h('span',{class:'neutral'},daysFrom(x.date)===0?'Today':'in '+daysFrom(x.date)+' days'))));
+ const lastIdx=isParent()?k:3;const prevIdx=Math.max(0,lastIdx-1);const d=mk[lastIdx]-mk[prevIdx];
+ const tr=h('div',{},h('div',{class:'two'},big(Math.round(mk[lastIdx])+'%','Latest exam average, target '+Math.round(tgAvg)+'%'),h('div',{},h('div',{class:d>=0?'up-good':'dn-bad',style:{fontSize:'18px',fontWeight:650}},(d>=0?'▲ +':'▼ ')+d.toFixed(1)+' pts'),h('div',{class:'note',style:{margin:0}},'since the exam before'))),
+  h('div',{style:{marginTop:'8px'}},spark(mk.slice(0,lastIdx+1))),isParent()?null:h('div',{class:'note'},'Cohort average, latest exam: '+Math.round(cohExam(3))+'%'));
+ f.append(h('div',{class:'grid g2'},openCard('Progress','progress',prog),openCard('Upcoming','upcoming',up),openCard('Participation','participation',part),openCard('Exam trend','trend',tr)));
+ if(!isParent()){f.append(sectionTitle('Advisor tools'));f.append(h('div',{class:'card'},h('label',{style:{display:'flex',gap:'8px',alignItems:'center'}},
+   (()=>{const c=h('input',{type:'checkbox'});c.checked=state.share;c.addEventListener('change',()=>{state.share=c.checked;render();});return c;})(),'Share wellness details (active minutes, recovery) with the parent'),
+  h('div',{class:'note'},'Off by default. Marks the advisor has not verified yet are hidden from the family view.')));}
+ return f;}
+
+/* ---- advisor first screen: my tasks, a few numbers, a status glance ---- */
+function cohortView(){const p=state.period;const f=h('div',{});const all=advisorTasks();const open=all.filter(t=>!state.done[t.id]);const ca=cohAct(p);
+ f.append(h('div',{class:'card',style:{marginBottom:'14px'}},h('div',{class:'card-h'},h('div',{},h('h2',{},'Your tasks'),h('div',{class:'csub'},'The most urgent things to do about students, at most two per student. '+open.length+' open in all.')),
+   h('button',{class:'back',type:'button',onclick:()=>go('tasks')},'All tasks →')),
+  open.length?h('ul',{class:'list'},topTasks(open,5).map(t=>taskRow(t,true,true))):h('div',{class:'empty'},'Nothing open. Well done.')));
+ const m3=avgOf(STUDENTS,x=>examAvg(x,3)),m2=avgOf(STUDENTS,x=>examAvg(x,2));const cnt={crit:0,warn:0,good:0};STUDENTS.forEach(x=>cnt[statusOf(x)]++);
+ f.append(h('div',{class:'tiles'},
+  statTile('Syllabus covered',rp(COH.syl),h('div',{class:'d'},'Plan '+rp(PLAN))),
+  statTile('Session attendance',rp(cohAtt(p)),h('div',{class:'d'},'Held '+periodLabel())),
+  statTile('Days active',ca.daysActive.toFixed(0)+' of '+plen(p),h('div',{class:'d'},'Average per student')),
+  statTile('Latest exam average',Math.round(m3)+'%',h('div',{class:'d '+(m3>=m2?'up-good':'dn-bad')},(m3>=m2?'▲ +':'▼ ')+(m3-m2).toFixed(1)+' pts since last exam'))));
+ f.append(h('div',{style:{height:'14px'}}));
+ f.append(openCard('Students at a glance','students',h('div',{class:'tiles'},
+  h('div',{},badge('good','On track'),h('div',{style:{fontSize:'26px',fontWeight:650,marginTop:'4px'}},cnt.good)),
+  h('div',{},badge('warn','Needs a look'),h('div',{style:{fontSize:'26px',fontWeight:650,marginTop:'4px'}},cnt.warn)),
+  h('div',{},badge('crit','Needs attention'),h('div',{style:{fontSize:'26px',fontWeight:650,marginTop:'4px'}},cnt.crit)))));
+ return f;}
+
+/* ---- team first screen: how the app and the program are doing ---- */
+function teamView(){const f=h('div',{});const last=ENG_ACTIVE.length-1;const eng=ENG_ACTIVE[last]+ENG_FOCUS[last];const sc=scoreRows('quarter');
+ const rated=sc.filter(r=>r.avg!=null);const avgR=rated.reduce((t,r)=>t+r.avg*r.rated,0)/Math.max(1,rated.reduce((t,r)=>t+r.rated,0));const planned=sc.reduce((t,r)=>t+r.planned,0),held=sc.reduce((t,r)=>t+r.held,0);
+ f.append(h('div',{class:'card',style:{marginBottom:'14px'}},h('div',{class:'card-h'},h('div',{},h('h2',{},'Engaged minutes per student per day'),h('div',{class:'csub'},'Active app time plus verified focus time, against the goal'))),
+  h('div',{class:'hero'},eng.toFixed(1),' ',h('small',{},'of '+GOAL_MIN+' min goal')),h('div',{style:{margin:'14px 0 10px'}},meterPlan(eng/GOAL_MIN,null)),
+  h('div',{class:'note'},'Starts at the 2.15 minute baseline from the brief. Later weeks are dummy values for the 8-week Phase 1 plan.')));
+ f.append(h('div',{class:'tiles'},
+  statTile('Weekly active students',WAU[last]+' of 20',h('div',{class:'d'},'Was '+WAU[0]+' in week 1'),WAU),
+  statTile('Regular focus users',String(REGULAR[last]),h('div',{class:'d'},'Was '+REGULAR[0]+' in week 1'),REGULAR),
+  statTile('Average session rating',avgR.toFixed(1)+' of 5',h('div',{class:'d'},'This quarter')),
+  statTile('Sessions delivered',held+' of '+planned,h('div',{class:'d'},planned-held?(planned-held)+' cancelled':'None cancelled'))));
+ f.append(h('div',{style:{height:'14px'}}));
+ const weak=[...ADOPT].sort((a,b)=>a.d7-b.d7).slice(0,2);
+ f.append(h('div',{class:'grid g3'},
+  openCard('Engagement','engagement',h('div',{},h('div',{class:'note',style:{margin:'0 0 6px'}},'Weekly trend, 8 weeks'),spark(ENG_ACTIVE.map((v,i)=>v+ENG_FOCUS[i]),200,40))),
+  openCard('Adoption by feature','adoption',h('div',{},h('div',{class:'note',style:{margin:'0 0 6px'}},'Least used this week'),weak.map(w=>h('div',{class:'kv'},h('span',{},w.name),h('strong',{},rp(w.d7)))))),
+  openCard('Delivery and feedback','delivery',h('div',{},h('div',{class:'note',style:{margin:'0 0 6px'}},'Latest comment'),h('div',{style:{fontStyle:'italic'}},'"'+FEEDBACK[3].text+'"'),h('div',{class:'note'},FEEDBACK[3].who+' on '+FEEDBACK[3].about)))));
+ return f;}
+
+/* =====================  SECOND SCREENS  ===================== */
+function tasksView(){const f=h('div',{});
+ if(isParent()){const s=S();const all=studentTasks(s);f.append(backChild(s));
+  f.append(h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},isStudent()?'Your tasks':'Tasks at hand for '+s.first),h('div',{class:'csub'},isStudent()?'Tick a task when it is done.':'Read only. '+s.first+' ticks tasks off in the app.'))),
+   h('ul',{class:'list'},all.map(t=>taskRow(t,isStudent(),false))),h('div',{class:'note'},'Tasks come from the app\'s existing to-do list: set by the advisor or planned by the student.')));return f;}
+ const all=advisorTasks();const open=all.filter(t=>!state.done[t.id]),done=all.filter(t=>state.done[t.id]);
+ f.append(backBtn('Back to your tasks',()=>go('cohort')));
+ f.append(h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},'All tasks'),h('div',{class:'csub'},open.length+' open, '+done.length+' done. Tasks come from the flags on each student, so they appear and clear by themselves.'))),
+  open.length?h('ul',{class:'list'},open.map(t=>taskRow(t,true,true))):h('div',{class:'empty'},'Nothing open.'),
+  done.length?h('div',{},h('div',{class:'sec',style:{margin:'16px 0 4px'}},'Done'),h('ul',{class:'list'},done.map(t=>taskRow(t,true,true)))):null));
+ return f;}
+
+function studentsView(){const p=state.period;const f=h('div',{});f.append(backBtn('Back to your tasks',()=>go('cohort')));
+ const order={crit:0,warn:1,good:2};const rows=STUDENTS.slice().sort((a,b)=>order[statusOf(a)]-order[statusOf(b)]||a.name.localeCompare(b.name));
+ f.append(h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},'All students'),h('div',{class:'csub'},'Most in need first. Click a student for their review.'))),h('div',{class:'tw'},h('table',{},h('thead',{},h('tr',{},['Student','Class','Syllabus','Readiness','Attendance','Active days','Latest marks','Status'].map((t,i)=>h('th',{class:i>=2&&i<7?'n':''},t)))),
+  h('tbody',{},rows.map(x=>{const stt=statusOf(x);const ar=attRate(x,p);const ac=activity(x,p);const open=()=>go('child',{sid:x.id});
+   return h('tr',{class:'clickable',tabindex:'0',style:{cursor:'pointer'},onclick:open,onkeydown:e=>{if(e.key==='Enter')open();}},
+    h('td',{style:{fontWeight:600}},x.name),h('td',{},x.cls+' · '+x.board),h('td',{class:'n'},rp(x.syl)),h('td',{class:'n'},rp(x.rdy)),h('td',{class:'n'},ar==null?'-':rp(ar)),h('td',{class:'n'},ac.daysActive+'/'+ac.len),
+    h('td',{class:'n'},Math.round(examAvg(x,3))+'%'+(x.marks[3].verified?'':' *')),h('td',{},badge(stt==='good'?'good':stt==='warn'?'warn':'crit',stt==='good'?'On track':stt==='warn'?'Needs a look':'Needs attention')));})))),
+  h('div',{class:'note'},'* marks uploaded by the family and awaiting verification. Syllabus plan today is '+rp(PLAN)+'.')));
+ return f;}
+
+function progressView(){const s=S();const f=h('div',{});
+ if(state.subj==null){f.append(backChild(s));
+  f.append(h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},'Progress by subject'),h('div',{class:'csub'},'Syllabus covered against the plan, and how ready each subject is. Tap a subject for its chapters.'))),
+   h('ul',{class:'list'},s.subj.map((sub,i)=>{const cs=cohSubj(i);const open=()=>go('progress',{subj:i});
+    return h('li',{class:'clickable',style:{flexWrap:'wrap',gap:'8px 18px',cursor:'pointer'},tabindex:'0',onclick:open,onkeydown:e=>{if(e.key==='Enter')open();}},
+     h('div',{style:{flex:'1 1 150px',minWidth:'130px'}},h('div',{style:{fontWeight:600}},sub.name),h('div',{style:{marginTop:'4px'}},subjStatus(sub))),
+     h('div',{style:{flex:'2 1 220px',minWidth:'180px'}},h('div',{class:'note',style:{margin:'0 0 6px'}},'Syllabus '+rp(sub.comp)+' (plan '+rp(PLAN)+')'+(isParent()?'':' · cohort '+rp(cs.comp))),meterPlan(sub.comp,PLAN)),
+     h('div',{style:{flex:'1 1 120px',minWidth:'110px'}},h('div',{class:'note',style:{margin:'0 0 6px'}},'Readiness '+rp(sub.ready)+(isParent()?'':' · cohort '+rp(cs.ready))),meterPlan(sub.ready,null,cssv('--s3'))),
+     h('span',{class:'neutral'},'→'));})),
+   h('div',{class:'note'},'Syllabus covered is chapters with reading and notes done. Readiness is how far each covered chapter has climbed: practice above 70%, a timed past paper, then exam accuracy of 80% or more.')));
+ }else{const sub=s.subj[state.subj];f.append(backBtn('Back to all subjects',()=>go('progress',{subj:null})));
+  f.append(h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},sub.name+': chapters'),h('div',{class:'csub'},sub.covered+' of '+NCH+' chapters covered · readiness '+rp(sub.ready)))),
+   table([{h:'Chapter'},{h:'Where it stands'},{h:'Stage'},{h:'Practice accuracy',n:1}],sub.ch.map(c=>['Chapter '+c.n,stageBar(c.stage),STAGES[c.stage],c.acc!=null?c.acc+'%':'-'])),
+   h('div',{class:'note'},'Chapters with no update yet show as not started. Ask for an update before treating them as behind.')));}
+ return f;}
+
+function bucketDays(s,p){const len=plen(p);const ds=s.days.slice(-len);if(p!=='quarter')return ds.map(d=>({label:fmtD(d.date),v:d.focus,d}));
+ const out=[];for(let i=0;i<ds.length;i+=7){const ch=ds.slice(i,i+7);out.push({label:fmtD(ch[0].date),v:ch.reduce((t,d)=>t+d.focus,0)/ch.length});}return out;}
+function cohBuckets(p){const len=plen(p);const rows=STUDENTS.map(s=>s.days.slice(-len));const n=rows[0].length;const day=[];for(let i=0;i<n;i++)day.push(avgOf(rows,r=>r[i].focus));
+ if(p!=='quarter')return day;const out=[];for(let i=0;i<n;i+=7){const ch=day.slice(i,i+7);out.push(ch.reduce((a,b)=>a+b,0)/ch.length);}return out;}
+function focusChart(s,p){return responsive(width=>{const bk=bucketDays(s,p);const coh=isParent()?null:cohBuckets(p);const C=[cssv('--s1'),cssv('--muted')];
+ const H=210,ml=36,mr=6,mt=10,mb=26,pw=width-ml-mr,ph=H-mt-mb;const mx=niceMax(Math.max(...bk.map(x=>x.v),...(coh||[0]),30));
+ const svg=s2('svg',{width,height:H,role:'img','aria-label':'Focus minutes'});
+ for(let i=0;i<=3;i++){const y=mt+ph-ph*i/3;svg.append(s2('line',{x1:ml,x2:width-mr,y1:y,y2:y,stroke:i?cssv('--grid'):cssv('--axis')}));svg.append(s2('text',{x:ml-6,y:y+4,'text-anchor':'end',class:'ax'},Math.round(mx*i/3)));}
+ const band=pw/bk.length,bw=Math.min(24,band*.7);const every=Math.max(1,Math.ceil(bk.length/Math.max(2,Math.floor(pw/64))));
+ bk.forEach((x,i)=>{const cx=ml+band*i+band/2,hh=x.v/mx*ph;if(hh>0)svg.append(s2('path',{d:barPath(cx-bw/2,mt+ph-hh,bw,hh,4),fill:C[0]}));
+  if(i%every===0)svg.append(s2('text',{x:cx,y:H-8,'text-anchor':'middle',class:'ax'},x.label));
+  const hit=s2('rect',{x:ml+band*i,y:mt,width:band,height:ph,fill:'transparent'});hover(hit,x.label,()=>[{color:C[0],value:Math.round(x.v)+' min',label:p==='quarter'?'average per day that week':you(s)},coh?{color:C[1],value:Math.round(coh[i])+' min',label:'cohort average'}:null].filter(Boolean));svg.append(hit);});
+ if(coh)svg.append(s2('polyline',{points:coh.map((v,i)=>(ml+band*i+band/2)+','+(mt+ph-v/mx*ph)).join(' '),fill:'none',stroke:C[1],'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+ return svg;});}
+function skillsCard(s,last){const avg=SKILLS.map((_,i)=>last.reduce((t,e)=>t+e.skills[i],0)/last.length);
+ const coh=SKILLS.map((_,i)=>avgOf(STUDENTS,x=>{const ev=x.events.filter(e=>e.skills).slice(-3);return ev.length?ev.reduce((t,e)=>t+e.skills[i],0)/ev.length:null;}));
+ return h('div',{},h('div',{class:'card-h'},h('div',{},h('h2',{},'Soft skills at workshops'),h('div',{class:'csub'},'Facilitator scores out of 5, average of the last '+last.length+' workshops. Cohort average shown for comparison.'))),
+  responsive(width=>hbars(SKILLS.map((k,i)=>({label:k,value:avg[i],color:cssv('--s1'),text:avg[i].toFixed(1)+'  (cohort '+coh[i].toFixed(1)+')',tipTitle:k,tipRows:[{value:avg[i].toFixed(1),label:s.first},{value:coh[i].toFixed(1),label:'cohort average'}]})),width,{max:5,rightW:150,aria:'Soft skills'})));}
+function participationView(){const s=S();const p=state.period;const f=h('div',{});const at=attendance(s,p),ac=activity(s,p),ca=cohAct(p);
+ f.append(backChild(s));
+ f.append(chartCard({title:'Attendance '+periodLabel(),sub:'Sessions held and how many '+you(s)+' joined'+(isParent()?'':'. Cohort rate in brackets.'),
+  chart:()=>responsive(width=>{const rows=EVTYPES.filter(t=>at[t.id].plan>0).map(t=>{const r=at[t.id];const cr=isParent()?'':' (cohort '+rp(avgOf(STUDENTS,x=>{const a=attendance(x,p)[t.id];return a.plan?a.att/a.plan:null;}))+')';
+    return{label:t.label,value:r.att/r.plan,color:cssv('--s1'),text:r.att+' of '+r.plan+cr,tipTitle:t.label,tipRows:[{value:r.att+' of '+r.plan,label:'attended'}]};});
+    if(!rows.length)return h('div',{class:'empty'},'No sessions were scheduled in this period.');return hbars(rows,width,{max:1,rightW:isParent()?90:200,aria:'Attendance by session type'});}),
+  table:()=>table([{h:'Session type'},{h:'Attended',n:1},{h:'Held',n:1}],EVTYPES.filter(t=>at[t.id].plan>0).map(t=>[t.label,at[t.id].att,at[t.id].plan])),
+  note:'Sessions cancelled by Alcovia are not counted against the student.'}));
+ f.append(sectionTitle('Activity in the app'));
+ f.append(h('div',{class:'tiles'},
+  statTile('Focus time per day',Math.round(ac.focusAvg)+' min',isParent()?null:h('div',{class:'d'},'Cohort '+Math.round(ca.focusAvg)+' min')),
+  statTile('Days active',ac.daysActive+' of '+ac.len,isParent()?null:h('div',{class:'d'},'Cohort '+ca.daysActive.toFixed(0)+' days')),
+  statTile('Daily quiz',ac.quizDays+' days',h('div',{class:'d'},ac.quizAvg!=null?'Average score '+Math.round(ac.quizAvg)+'%':'No quiz taken')),
+  statTile('Tasks completed',rp(ac.taskRate),isParent()?null:h('div',{class:'d'},'Cohort '+rp(ca.taskRate))),
+  (state.role==='parent'&&!state.share)?statTile('Wellness',h('span',{style:{fontSize:'14px',fontWeight:500}},'Shared by your advisor'),null):
+   statTile('Active minutes per day',ac.activeAvg!=null?Math.round(ac.activeAvg)+' min':h('span',{style:{fontSize:'15px',fontWeight:500}},'Not connected'),h('div',{class:'d'},ac.activeAvg!=null?'From the connected wearable':'No wearable linked'))));
+ f.append(h('div',{style:{height:'14px'}}));
+ f.append(chartCard({title:'Focus time',sub:p==='quarter'?'Average minutes per day, by week':'Minutes of focus per day',legend:isParent()?null:legend([{color:cssv('--s1'),label:s.first},{color:cssv('--muted'),label:'Cohort average'}]),
+  chart:()=>focusChart(s,p),table:()=>table([{h:p==='quarter'?'Week of':'Day'},{h:'Minutes',n:1}],bucketDays(s,p).map(x=>[x.label,Math.round(x.v)]))}));
+ if(!isParent()){f.append(sectionTitle('Workshop scorecard (advisor only)'));const last=s.events.filter(e=>e.skills).slice(-3);
+  f.append(h('div',{class:'card'},last.length?skillsCard(s,last):h('div',{class:'empty'},'No workshop scorecards yet.')));}
+ return f;}
+
+function upcomingView(){const s=S();const f=h('div',{});const items=upcomingItems(s);f.append(backChild(s));
+ f.append(h('div',{class:'card'},h('div',{class:'card-h'},h('div',{},h('h2',{},'Next 5 weeks'),h('div',{class:'csub'},'Sessions, workshops and exams in date order'))),
+  h('ul',{class:'list'},items.map(x=>{const d=daysFrom(x.date);let note=null;
+   if(x.exam){const r=x.ready;note=r<.45&&d<=21?badge('warn','Needs preparation, readiness '+rp(r)):badge(r>=.7?'good':'mute','Readiness '+rp(r));}
+   else if(x.clash)note=badge('warn','Close to the '+x.clash.subj+' exam on '+fmtD(x.clash.date));
+   return h('li',{},h('div',{},h('div',{style:{fontWeight:600}},x.title),h('div',{class:'note',style:{margin:'2px 0 0'}},fmtD(x.date)+' · '+(x.exam?'School exam':x.kind==='ws'?'Workshop':ONE[x.kind])),note?h('div',{style:{marginTop:'6px'}},note):null),
+    h('span',{class:'neutral',style:{whiteSpace:'nowrap'}},d===0?'Today':'in '+d+' days'));})),
+  h('div',{class:'note'},'Exam dates come from the school date sheet that the student or parent uploads and the advisor verifies. Dates can change, so the weekly review rechecks them.')));
+ return f;}
+
+function trendChart(s,si){return responsive(width=>{const adv=!isParent();const C=[cssv('--s1'),cssv('--muted')];const ms=s.marks;
+ const val=k=>si<0?examAvg(s,k):ms[k].v[si];const tg=si<0?s.target.reduce((a,b)=>a+b,0)/SUBJECTS.length:s.target[si];
+ const H=250,ml=40,mr=40,mt=12,mb=30,pw=width-ml-mr,ph=H-mt-mb;const lo=30,hi=100;const Y=v=>mt+ph-(v-lo)/(hi-lo)*ph;
+ const band=pw/ms.length,X=k=>ml+band*k+band/2;const svg=s2('svg',{width,height:H,role:'img','aria-label':'Exam marks over time'});
+ [30,50,70,90,100].forEach(v=>{svg.append(s2('line',{x1:ml,x2:width-mr,y1:Y(v),y2:Y(v),stroke:v===30?cssv('--axis'):cssv('--grid')}));svg.append(s2('text',{x:ml-6,y:Y(v)+4,'text-anchor':'end',class:'ax'},v));});
+ svg.append(s2('line',{x1:ml,x2:width-mr,y1:Y(tg),y2:Y(tg),stroke:cssv('--ink2'),'stroke-width':1}));svg.append(s2('text',{x:width-mr+4,y:Y(tg)+4,class:'ax'},'Target '+Math.round(tg)));
+ const shown=ms.map((m,k)=>({k,m,ok:adv||m.verified})).filter(z=>z.ok);
+ if(adv){const cp=ms.map((_,k)=>cohExam(k,si<0?null:si));svg.append(s2('polyline',{points:cp.map((v,k)=>X(k)+','+Y(v)).join(' '),fill:'none',stroke:C[1],'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));}
+ svg.append(s2('polyline',{points:shown.map(z=>X(z.k)+','+Y(val(z.k))).join(' '),fill:'none',stroke:C[0],'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+ ms.forEach((m,k)=>{svg.append(s2('text',{x:X(k),y:H-9,'text-anchor':'middle',class:'ax'},m.ex.label));});
+ shown.forEach((z,i)=>{const x=X(z.k),y=Y(val(z.k));const un=!z.m.verified;
+  svg.append(s2('circle',{cx:x,cy:y,r:6,fill:cssv('--surface')}));svg.append(s2('circle',{cx:x,cy:y,r:4,fill:un?cssv('--surface'):C[0],stroke:C[0],'stroke-width':un?2:0}));
+  if(i===shown.length-1)svg.append(s2('text',{x:x,y:y-11,'text-anchor':'middle',class:'val'},Math.round(val(z.k))));});
+ ms.forEach((m,k)=>{if(!adv&&!m.verified)return;const hit=s2('rect',{x:ml+band*k,y:mt,width:band,height:ph,fill:'transparent'});
+  hover(hit,m.ex.label+' · '+fmtD(m.ex.date),()=>[{color:C[0],value:Math.round(val(k))+'%',label:(si<0?'Average of all subjects':SUBJECTS[si])+(m.verified?'':' (awaiting verification)')},adv?{color:C[1],value:Math.round(cohExam(k,si<0?null:si))+'%',label:'cohort average'}:null,{value:Math.round(tg)+'%',label:'target'}].filter(Boolean));svg.append(hit);});
+ return svg;});}
+function trendView(){const s=S();const f=h('div',{});f.append(backChild(s));
+ const opts=[{id:-1,label:'All subjects'},...SUBJECTS.map((n,i)=>({id:i,label:n}))];const si=state.tsubj;const pend=s.marks.filter(m=>!m.verified).length;
+ const ctrl=h('div',{class:'seg',role:'group',style:{flexWrap:'wrap'}},opts.map(o=>h('button',{type:'button','aria-pressed':String(o.id===si),onclick:()=>{state.tsubj=o.id;render();}},o.label)));
+ f.append(chartCard({title:'Exam marks over time',sub:'Percent scored in each exam, against the target set with the family',
+  legend:h('div',{},ctrl,h('div',{style:{height:'8px'}}),legend([{color:cssv('--s1'),label:isStudent()?'You':s.first},...(isParent()?[]:[{color:cssv('--muted'),label:'Cohort average'}]),{color:cssv('--ink2'),label:'Target'}])),
+  chart:()=>trendChart(s,si),
+  table:()=>table([{h:'Exam'},{h:'Date'},{h:'Marks',n:1},{h:'Target',n:1},{h:'Status'}],visibleMarks(s).map(m=>{const v=si<0?examAvg(s,s.marks.indexOf(m)):m.v[si];const t=si<0?s.target.reduce((a,b)=>a+b,0)/SUBJECTS.length:s.target[si];return[m.ex.label,fmtD(m.ex.date),Math.round(v)+'%',Math.round(t)+'%',m.verified?badge('good','Verified'):badge('warn','Awaiting verification')];})),
+  note:isParent()?(pend?'The latest result will appear here once your advisor has checked it.':null):(pend?'Hollow marker: marks uploaded by the family and not yet verified. Verify them in the weekly review.':null)}));
+ f.append(sectionTitle('Latest result by subject'));const k=isParent()?latestVerified(s):3;
+ f.append(h('div',{class:'card'},table([{h:'Subject'},{h:'Latest',n:1},{h:'Target',n:1},{h:'Change',n:1},{h:'Standing'}],SUBJECTS.map((n,i)=>{const v=s.marks[k].v[i],pv=s.marks[Math.max(0,k-1)].v[i],t=s.target[i];const d=v-pv;
+  return[n,v+'%',t+'%',h('span',{class:d>=0?'up-good':'dn-bad'},(d>=0?'▲ +':'▼ ')+d),v>=t?badge('good','At or above target'):isParent()?badge('info','Room to grow'):badge('warn',(t-v)+' pts below target')];}))));
+ return f;}
+
+/* ---- team second screens ---- */
+function engagementView(){const f=h('div',{});f.append(backBtn('Back to overview',()=>go('team')));const C=[cssv('--s1'),cssv('--s2')];
+ f.append(chartCard({title:'Engaged minutes per student per day',sub:'Active app time plus verified focus time, by week, against the 30 minute goal',legend:legend([{color:C[0],label:'Active in the app'},{color:C[1],label:'Verified focus'}]),
+  chart:()=>responsive(width=>{const H=260,ml=40,mr=64,mt=12,mb=28,pw=width-ml-mr,ph=H-mt-mb,mx=35;const Y=v=>mt+ph-v/mx*ph;const svg=s2('svg',{width,height:H,role:'img','aria-label':'Engaged minutes by week'});
+   [0,10,20,30].forEach(v=>{svg.append(s2('line',{x1:ml,x2:width-mr,y1:Y(v),y2:Y(v),stroke:v?cssv('--grid'):cssv('--axis')}));svg.append(s2('text',{x:ml-6,y:Y(v)+4,'text-anchor':'end',class:'ax'},v));});
+   const band=pw/ENG_WEEKS.length,bw=Math.min(24,band*.6);
+   ENG_WEEKS.forEach((w,i)=>{const cx=ml+band*i+band/2,a=ENG_ACTIVE[i],fo=ENG_FOCUS[i];const ha=a/mx*ph,hf=fo/mx*ph;
+    svg.append(s2('path',{d:`M${cx-bw/2},${Y(0)}h${bw}v${-Math.max(0,ha-(hf>0?2:0))}h${-bw}Z`,fill:C[0]}));if(hf>0)svg.append(s2('path',{d:barPath(cx-bw/2,Y(a+fo),bw,hf,4),fill:C[1]}));else svg.append(s2('path',{d:barPath(cx-bw/2,Y(a),bw,ha,4),fill:C[0]}));
+    svg.append(s2('text',{x:cx,y:H-8,'text-anchor':'middle',class:'ax'},w));
+    const hit=s2('rect',{x:ml+band*i,y:mt,width:band,height:ph,fill:'transparent'});hover(hit,w,[{color:C[0],value:a.toFixed(1)+' min',label:'active in the app'},{color:C[1],value:fo.toFixed(1)+' min',label:'verified focus'},{value:(a+fo).toFixed(1)+' min',label:'engaged total'}]);svg.append(hit);});
+   svg.append(s2('line',{x1:ml,x2:width-mr,y1:Y(GOAL_MIN),y2:Y(GOAL_MIN),stroke:cssv('--ink2'),'stroke-width':1}));svg.append(s2('text',{x:width-mr+4,y:Y(GOAL_MIN)+4,class:'ax'},'Goal 30'));return svg;}),
+  table:()=>table([{h:'Week'},{h:'Active',n:1},{h:'Verified focus',n:1},{h:'Engaged total',n:1}],ENG_WEEKS.map((w,i)=>[w,ENG_ACTIVE[i].toFixed(1),ENG_FOCUS[i].toFixed(1),(ENG_ACTIVE[i]+ENG_FOCUS[i]).toFixed(1)])),
+  note:'Week 1 is the 2.15 minute baseline from the brief. Weeks 2 to 8 are dummy values showing the Phase 1 target path. Focus counts only when verified (leave-to-fail).'}));
+ f.append(sectionTitle('People behind the number'));
+ f.append(h('div',{class:'tiles'},statTile('Weekly active students',WAU[7]+' of 20',h('div',{class:'d'},'Week 1: '+WAU[0]),WAU),statTile('Regular focus users',String(REGULAR[7]),h('div',{class:'d'},'Week 1: '+REGULAR[0]),REGULAR)));
+ return f;}
+function adoptionView(){const f=h('div',{});f.append(backBtn('Back to overview',()=>go('team')));
+ f.append(chartCard({title:'Which features students use',sub:'Share of students who used each area at least once. Baseline from the brief, 30 Aug to 13 Oct 2026.',legend:legend([{color:cssv('--s1'),label:'Last 7 days (of 13 active students)'},{color:cssv('--muted'),label:'Last 45 days (of 20 students)'}]),
+  chart:()=>responsive(width=>{const rows=[];ADOPT.forEach(a=>{rows.push({label:a.name,value:a.d7,color:cssv('--s1'),text:rp(a.d7),tipTitle:a.name,tipRows:[{value:rp(a.d7),label:'last 7 days'},{value:rp(a.d45),label:'last 45 days'}]});rows.push({label:'',value:a.d45,color:cssv('--muted'),text:rp(a.d45),tipTitle:a.name,tipRows:[{value:rp(a.d7),label:'last 7 days'},{value:rp(a.d45),label:'last 45 days'}]});});
+   return hbars(rows,width,{max:1,bh:13,gap:5,rightW:70,aria:'Feature adoption'});}),
+  table:()=>table([{h:'Area'},{h:'Last 7 days',n:1},{h:'Last 45 days',n:1}],ADOPT.map(a=>[a.name,rp(a.d7),rp(a.d45)])),
+  note:'Study and Wellness lose students fastest: about two-thirds tried each, but only 2 of 13 active students used either this week.'}));
+ return f;}
+function scoreRows(p){const len=plen(p);return EVTYPES.map(t=>{let planned=0,held=0,att=0,attPlan=0,rated=0,rsum=0;
+  if(t.id==='mentor'){STUDENTS.forEach(x=>x.events.filter(e=>e.type==='mentor'&&daysFrom(e.date)<=0&&daysFrom(e.date)>-len).forEach(e=>{planned++;if(e.held)held++;if(e.attended!=null){attPlan++;if(e.attended)att++;}if(e.rating){rated++;rsum+=e.rating;}}));}
+  else{GEV.filter(e=>e.type===t.id&&daysFrom(e.date)<=0&&daysFrom(e.date)>-len).forEach(e=>{planned++;if(e.held)held++;});
+   STUDENTS.forEach(x=>x.events.filter(e=>e.type===t.id&&e.attended!=null&&daysFrom(e.date)>-len).forEach(e=>{attPlan++;if(e.attended)att++;if(e.rating){rated++;rsum+=e.rating;}}));}
+  return{t,planned,held,att,attPlan,rated,avg:rated?rsum/rated:null,resp:att?rated/att:null};}).filter(r=>r.planned>0);}
+function deliveryView(){const p=state.period;const rows=scoreRows(p);const f=h('div',{});f.append(backBtn('Back to overview',()=>go('team')));
+ f.append(h('div',{class:'grid g2'},
+  chartCard({title:'Quantity: did we run it?',sub:'Sessions held out of sessions planned '+periodLabel(),chart:()=>responsive(width=>hbars(rows.map(r=>({label:r.t.label,value:r.held/r.planned,color:r.held<r.planned?cssv('--serious'):cssv('--s1'),text:r.held+' of '+r.planned+(r.held<r.planned?'  ! cancelled':''),tipTitle:r.t.label,tipRows:[{value:r.held+' of '+r.planned,label:'held'}]})),width,{max:1,rightW:130,aria:'Sessions held'})),
+   table:()=>table([{h:'Session'},{h:'Planned',n:1},{h:'Held',n:1}],rows.map(r=>[r.t.label,r.planned,r.held])),note:'Orange means at least one planned session did not run. Switch the period to Quarter to see the cancelled workshop.'}),
+  chartCard({title:'Quality: did students like it?',sub:'Average rating out of 5, collected with one tap after each session',chart:()=>responsive(width=>hbars(rows.filter(r=>r.avg!=null).map(r=>({label:r.t.label,value:r.avg,color:cssv('--s1'),text:r.avg.toFixed(1)+'  ('+r.rated+' ratings)',tipTitle:r.t.label,tipRows:[{value:r.avg.toFixed(2),label:'average rating'},{value:rp(r.resp),label:'of attendees rated it'}]})),width,{max:5,rightW:130,aria:'Average rating'})),
+   table:()=>table([{h:'Session'},{h:'Rating',n:1},{h:'Ratings',n:1},{h:'Share who rated',n:1}],rows.map(r=>[r.t.label,r.avg!=null?r.avg.toFixed(1):'-',r.rated,rp(r.resp)])),note:'Ratings are for the team only. Families never see them.'})));
+ f.append(sectionTitle('What students and parents said (dummy, anonymised)'));
+ f.append(h('div',{class:'card'},h('ul',{class:'list'},FEEDBACK.map(x=>h('li',{},h('div',{},h('div',{},'"'+x.text+'"'),h('div',{class:'note',style:{margin:'2px 0 0'}},x.who+' on '+x.about)),h('span',{class:'neutral',style:{whiteSpace:'nowrap'}},x.rating+' of 5')))),
+  h('div',{class:'note'},'In production this comes from the one-tap rating plus an optional comment box in the app.')));
+ return f;}
+
+/* ---------- shell ---------- */
+const SUBTITLE={advisor:'Advisor view: your tasks and how students are doing',parent:'Parent view: tasks, progress and what is coming up',student:'Student view: what to do today and how you are doing',team:'Alcovia team view: how the app and the program are doing'};
+function render(){app.replaceChildren();const p=state.period;
+ app.append(h('header',{class:'top'},h('div',{},h('h1',{},'Alcovia student progress'),h('div',{class:'sub'},SUBTITLE[state.role])),
+  h('div',{style:{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}},h('span',{class:'pill'},'Dummy data'),themeToggle(render))));
+ const roleSeg=seg([{id:'advisor',label:'Advisor'},{id:'parent',label:'Parent'},{id:'student',label:'Student'},{id:'team',label:'Team'}],state.role,r=>{state.role=r;state.view=ROLE_HOME[r];state.subj=null;render();});
+ const childSel=isParent()?h('label',{},isStudent()?'Student':'Parent of',(()=>{const sel=h('select',{class:'sel','aria-label':'Child'},STUDENTS.map(x=>h('option',{value:x.id},x.name)));sel.value=String(state.sid);sel.addEventListener('change',()=>{state.sid=+sel.value;state.subj=null;render();});return sel;})()):null;
+ const perSeg=seg(PERIODS.map(x=>({id:x.id,label:x.label})),p,v=>{state.period=v;render();});
+ app.append(h('div',{class:'filters'},h('label',{},'Viewing as',roleSeg),childSel,h('label',{},'Period',perSeg),h('span',{class:'note',style:{margin:0}},'Period changes attendance and activity. Syllabus and marks always show today.')));
+ const R=state.role;let views;
+ if(R==='team')views={team:teamView,engagement:engagementView,adoption:adoptionView,delivery:deliveryView};
+ else if(R==='advisor')views={cohort:cohortView,tasks:tasksView,students:studentsView,child:childMain,progress:progressView,participation:participationView,upcoming:upcomingView,trend:trendView};
+ else views={child:childMain,tasks:tasksView,progress:progressView,participation:participationView,upcoming:upcomingView,trend:trendView};
+ if(!views[state.view])state.view=ROLE_HOME[R];
+ app.append(views[state.view]());}
+(function(){const q=new URLSearchParams(location.hash.slice(1));if(q.get('role'))state.role=q.get('role');if(q.get('sid'))state.sid=+q.get('sid');if(q.get('period'))state.period=q.get('period');
+ state.view=q.get('view')||ROLE_HOME[state.role];if(q.get('subj'))state.subj=+q.get('subj');if(q.get('tsubj'))state.tsubj=+q.get('tsubj');
+ if(q.get('share'))state.share=q.get('share')==='1';if(q.get('theme'))document.documentElement.setAttribute('data-theme',q.get('theme'));})();
+render();
+</script></body></html>
