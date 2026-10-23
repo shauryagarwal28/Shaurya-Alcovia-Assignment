@@ -19,7 +19,7 @@ Tips: the student dashboard has buttons at the top to switch between Advisor, Pa
 | Path | What it is |
 |---|---|
 | [`dashboards/`](dashboards) | The two dashboards, one self-contained HTML file each. |
-| [`db/schema.sql`](db/schema.sql) | The central Postgres store: 31 tables for students, syllabus, activity, delivery, marks, advisor work, leads, ads and invoices. |
+| [`db/schema.sql`](db/schema.sql) | The central Postgres store: 30 tables for students, syllabus, activity, delivery, marks, advisor work, leads, ads and invoices. |
 | [`db/seed/`](db/seed) | A generator and its output: 20 students, 90 days of activity, 740 leads, campaigns, invoices. All invented. |
 | [`sql/metrics/`](sql/metrics) | 18 queries, one per KPI in the write-up. |
 | [`n8n/`](n8n) | 9 exported workflows that fill the store and act on it. |
