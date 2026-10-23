@@ -1,0 +1,8 @@
+# A throwaway Postgres for running db/ and sql/ locally. Not needed for the live dashboards.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
