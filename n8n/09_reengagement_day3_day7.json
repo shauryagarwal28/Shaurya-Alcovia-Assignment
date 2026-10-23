@@ -1,0 +1,207 @@
+{
+  "name": "09 Re-engagement day 3 and day 7",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Daily 9am. Day 3 quiet: the pod and the advisor nudge the student. Day 7 quiet: the advisor calls the PARENT as a routine check-in.\nDeliberately a person, not an AI call: parents of a premium program expect one. Smallest.ai stays on sales.",
+        "height": 200,
+        "width": 420
+      },
+      "id": "a1bd1f44-23cf-5055-bb9c-5d8aa7912dc3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "de926ca8-27b3-5878-aed4-1033ae98d690",
+      "name": "Every morning 9:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT st.student_id, st.full_name, st.advisor_id,\n       CASE WHEN last_seen.d = CURRENT_DATE - 3 THEN 3 WHEN last_seen.d = CURRENT_DATE - 7 THEN 7 END AS days_quiet\nFROM alcovia.students st\nCROSS JOIN LATERAL (SELECT MAX((s.started_at AT TIME ZONE 'Asia/Kolkata')::date) AS d FROM alcovia.app_sessions s WHERE s.student_id = st.student_id) last_seen\nWHERE last_seen.d IN (CURRENT_DATE - 3, CURRENT_DATE - 7);",
+        "options": {}
+      },
+      "id": "01e32e33-0a8e-5272-bbc3-f1b83446cbaa",
+      "name": "Students gone quiet",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "de8f653a-8d46-5f5d-81b1-3e1edfc9da39",
+              "leftValue": "={{ $json.days_quiet }}",
+              "rightValue": 7,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e2613370-df9d-55cf-8a18-2e3fb556851f",
+      "name": "Seven days?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "create",
+        "team": "REPLACE_WITH_WORKSPACE_ID",
+        "space": "REPLACE_WITH_SPACE_ID",
+        "folderless": true,
+        "list": "REPLACE_WITH_ADVISOR_LIST_ID",
+        "name": "=Call the parent: {{ $json.full_name }} has been quiet for 7 days",
+        "additionalFields": {
+          "content": "Routine check-in. Ask what is getting in the way. Not an automated call.",
+          "priority": 1
+        }
+      },
+      "id": "466ab050-5aad-524a-8838-7163f9b8a47a",
+      "name": "Advisor calls the parent",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        720,
+        -80
+      ],
+      "credentials": {
+        "clickUpApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia ClickUp"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "create",
+        "team": "REPLACE_WITH_WORKSPACE_ID",
+        "space": "REPLACE_WITH_SPACE_ID",
+        "folderless": true,
+        "list": "REPLACE_WITH_ADVISOR_LIST_ID",
+        "name": "=Nudge {{ $json.full_name }}: quiet for 3 days",
+        "additionalFields": {
+          "content": "Ask their pod to say hi and send a short note from the advisor. Keep it warm, not a nag.",
+          "priority": 2
+        }
+      },
+      "id": "d374303a-df0c-5825-91aa-1d314e2bb1a6",
+      "name": "Pod and advisor nudge",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        720,
+        100
+      ],
+      "credentials": {
+        "clickUpApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia ClickUp"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every morning 9:00": {
+      "main": [
+        [
+          {
+            "node": "Students gone quiet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Students gone quiet": {
+      "main": [
+        [
+          {
+            "node": "Seven days?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Seven days?": {
+      "main": [
+        [
+          {
+            "node": "Advisor calls the parent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pod and advisor nudge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "99ecf7d4-86d5-5b18-b6e7-f679d8a524a0",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "69051141-7405-58cf-9bfd-87c71a4032bb",
+  "tags": [
+    {
+      "name": "alcovia"
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "name": "08 ClickUp lead stages to store",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "When a lead's ClickUp status changes, stamp the matching stage in Postgres. Every lead must carry a SOURCE tag (meta, organic, referral, school) when it is created, or cost per qualified lead is a guess.",
+        "height": 200,
+        "width": 420
+      },
+      "id": "a1bd1f44-23cf-5055-bb9c-5d8aa7912dc3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "team": "REPLACE_WITH_WORKSPACE_ID",
+        "events": [
+          "taskStatusUpdated",
+          "taskCreated"
+        ],
+        "filters": {
+          "listId": "REPLACE_WITH_LEADS_LIST_ID"
+        }
+      },
+      "id": "13d19f53-3700-58d3-8398-512e6ab006e0",
+      "name": "Lead status changed",
+      "type": "n8n-nodes-base.clickUpTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "clickUpApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia ClickUp"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const map = { 'qualified': 'qualified_at', 'discovery call set': 'discovery_set_at', 'discovery call held': 'discovery_held_at',\n  'ambition interview': 'ambition_held_at', 'architect session': 'architect_held_at', 'signed up': 'signed_up_at', 'dropped': 'dropped_at' };\nconst status = (($json.history_items?.[0]?.after?.status) || '').toLowerCase();\nreturn [{ json: { clickup_task_id: $json.task_id, column: map[status] || null, status } }];"
+      },
+      "id": "c205cbcc-dcb3-5788-88ca-10b4b2ebe224",
+      "name": "Map status to stage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "a4f349e9-81f9-5e42-a4fd-6f5df7cf0868",
+              "leftValue": "={{ $json.column }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "923f655b-6672-51e5-8c6f-2bb4977b18ff",
+      "name": "Known stage?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE alcovia.leads SET\n  qualified_at      = CASE WHEN $2 = 'qualified_at'      THEN COALESCE(qualified_at, now())      ELSE qualified_at END,\n  discovery_set_at  = CASE WHEN $2 = 'discovery_set_at'  THEN COALESCE(discovery_set_at, now())  ELSE discovery_set_at END,\n  discovery_held_at = CASE WHEN $2 = 'discovery_held_at' THEN COALESCE(discovery_held_at, now()) ELSE discovery_held_at END,\n  ambition_held_at  = CASE WHEN $2 = 'ambition_held_at'  THEN COALESCE(ambition_held_at, now())  ELSE ambition_held_at END,\n  architect_held_at = CASE WHEN $2 = 'architect_held_at' THEN COALESCE(architect_held_at, now()) ELSE architect_held_at END,\n  signed_up_at      = CASE WHEN $2 = 'signed_up_at'      THEN COALESCE(signed_up_at, now())      ELSE signed_up_at END,\n  dropped_at        = CASE WHEN $2 = 'dropped_at'        THEN COALESCE(dropped_at, now())        ELSE dropped_at END\nWHERE clickup_task_id = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.clickup_task_id }},{{ $json.column }}"
+        }
+      },
+      "id": "5aa51276-fc7a-5bb7-abbc-101f10dcf06d",
+      "name": "Stamp the stage",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        720,
+        -80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Lead status changed": {
+      "main": [
+        [
+          {
+            "node": "Map status to stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map status to stage": {
+      "main": [
+        [
+          {
+            "node": "Known stage?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Known stage?": {
+      "main": [
+        [
+          {
+            "node": "Stamp the stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "98a032f9-71ed-5e4f-a39d-d9a2a46a1454",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "b8c18362-24b4-5a52-a16f-69b0faf92876",
+  "tags": [
+    {
+      "name": "alcovia"
+    }
+  ]
+}

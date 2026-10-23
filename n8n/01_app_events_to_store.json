@@ -1,0 +1,164 @@
+{
+  "name": "01 App events to central store",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "The app posts one event per session or feature open. This validates it, works out nothing a person typed, and writes it to Postgres.\nFocus is marked verified inside Postgres (generated column): foreground + idle <= 300s + check-in.",
+        "height": 200,
+        "width": 420
+      },
+      "id": "a1bd1f44-23cf-5055-bb9c-5d8aa7912dc3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "alcovia/app-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e06b2461-2224-59b6-ac82-92c26fe45dcd",
+      "name": "App event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $input.first().json.body || {};\nconst kinds = ['app', 'focus'];\nconst features = ['home','focus_game','study','plan','wellness','other'];\nif (!Number.isInteger(b.student_id)) throw new Error('student_id required');\nconst out = { student_id: b.student_id, started_at: b.started_at || new Date().toISOString(), kind: kinds.includes(b.kind) ? b.kind : 'app',\n  active_seconds: Math.max(0, Math.round(Number(b.active_seconds) || 0)),\n  stayed_foreground: b.kind === 'focus' ? !!b.stayed_foreground : null,\n  longest_idle_s: b.kind === 'focus' ? Math.round(Number(b.longest_idle_s) || 0) : null,\n  checked_in: b.kind === 'focus' ? !!b.checked_in : null,\n  features: (b.features || []).filter(f => features.includes(f)) };\nreturn [{ json: out }];"
+      },
+      "id": "2227ff0f-959b-5e85-b9d4-2f00bcbc1dcb",
+      "name": "Validate and shape",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO alcovia.app_sessions (student_id, started_at, kind, active_seconds, stayed_foreground, longest_idle_s, checked_in)\nVALUES ($1, $2, $3, $4, $5, $6, $7);",
+        "options": {
+          "queryReplacement": "={{ $json.student_id }},{{ $json.started_at }},{{ $json.kind }},{{ $json.active_seconds }},{{ $json.stayed_foreground }},{{ $json.longest_idle_s }},{{ $json.checked_in }}"
+        }
+      },
+      "id": "1bba3185-074e-562e-a45e-38fc33254920",
+      "name": "Insert session",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        520,
+        -80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO alcovia.app_feature_events (student_id, feature, occurred_at)\nSELECT $1, f, $2::timestamptz FROM unnest($3::text[]) AS f;",
+        "options": {
+          "queryReplacement": "={{ $json.student_id }},{{ $json.started_at }},{{ '{' + $json.features.join(',') + '}' }}"
+        }
+      },
+      "id": "26577229-993e-50f3-a84d-662c40fec59e",
+      "name": "Insert feature events",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        520,
+        100
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"ok\": true } }}",
+        "options": {}
+      },
+      "id": "40bdf48b-3c00-5f1e-a92f-d32e105e5235",
+      "name": "OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        780,
+        -80
+      ]
+    }
+  ],
+  "connections": {
+    "App event": {
+      "main": [
+        [
+          {
+            "node": "Validate and shape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate and shape": {
+      "main": [
+        [
+          {
+            "node": "Insert session",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Insert feature events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert session": {
+      "main": [
+        [
+          {
+            "node": "OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9a1638b7-f595-592a-a43d-116184205e0e",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "aeaaab3d-3ad5-51c7-8806-14b34c07afcf",
+  "tags": [
+    {
+      "name": "alcovia"
+    }
+  ]
+}

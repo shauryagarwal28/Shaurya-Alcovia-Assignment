@@ -1,0 +1,143 @@
+{
+  "name": "05 Weekly parent summary",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Sunday 6pm. One short, plain-words message per family with a link straight to the child's screen.\nOnly students with written guardian consent. Only verified marks. No ratings, no cohort numbers.",
+        "height": 200,
+        "width": 420
+      },
+      "id": "a1bd1f44-23cf-5055-bb9c-5d8aa7912dc3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "3341d5b3-b578-5776-931b-f45327e37bae",
+      "name": "Sunday 18:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT st.student_id, split_part(st.full_name, ' ', 1) AS first_name, g.phone,\n       ROUND(cp.covered * 100) AS covered_pct, ROUND(alcovia.syllabus_plan(CURRENT_DATE) * 100) AS plan_pct,\n       att.attended, att.held, ue.subject, ue.exam_date\nFROM alcovia.students st\nJOIN alcovia.guardians g ON g.student_id = st.student_id AND g.consent_at IS NOT NULL\nCROSS JOIN LATERAL (SELECT COUNT(*) FILTER (WHERE stage >= 2)::numeric / NULLIF(COUNT(*), 0) AS covered\n                    FROM alcovia.student_chapter_progress WHERE student_id = st.student_id) cp\nCROSS JOIN LATERAL (SELECT COUNT(*) FILTER (WHERE a.attended) AS attended, COUNT(*) AS held\n                    FROM alcovia.event_attendance a JOIN alcovia.program_events e USING (event_id)\n                    WHERE a.student_id = st.student_id AND e.held AND e.scheduled_at > now() - interval '7 days' AND e.scheduled_at <= now()) att\nLEFT JOIN LATERAL (SELECT sub.name AS subject, u.exam_date FROM alcovia.upcoming_exams u JOIN alcovia.subjects sub USING (subject_id)\n                   WHERE u.student_id = st.student_id AND u.exam_date >= CURRENT_DATE ORDER BY u.exam_date LIMIT 1) ue ON true;",
+        "options": {}
+      },
+      "id": "9075224c-a14f-5c27-8527-fb118512a1e6",
+      "name": "One row per family",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(i => {\n  const r = i.json;\n  const pace = r.covered_pct >= r.plan_pct - 3 ? 'is on plan' : 'has a little catching up to do';\n  const lines = [`Hi, this is ${r.first_name}'s week at Alcovia.`,\n    `Syllabus covered: ${r.covered_pct}% (plan ${r.plan_pct}%). ${r.first_name} ${pace}.`,\n    r.held ? `Sessions joined: ${r.attended} of ${r.held}.` : null,\n    r.subject ? `Next exam: ${r.subject} on ${new Date(r.exam_date).toDateString()}.` : null,\n    `See the full picture: https://REPLACE_APP_DOMAIN/family/${r.student_id}`].filter(Boolean);\n  return { json: { phone: r.phone, text: lines.join('\\n') } };\n});"
+      },
+      "id": "e6d5a6ca-18f9-5fe6-9983-6bdf3793a12a",
+      "name": "Write it in plain words",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://REPLACE_WITH_WHATSAPP_PROVIDER/messages",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: $json.phone, text: $json.text }) }}",
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "57b842ab-312f-557b-8c33-ae73ff64dbd7",
+      "name": "Send on WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Sunday 18:00": {
+      "main": [
+        [
+          {
+            "node": "One row per family",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One row per family": {
+      "main": [
+        [
+          {
+            "node": "Write it in plain words",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write it in plain words": {
+      "main": [
+        [
+          {
+            "node": "Send on WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "76c1b4ac-e56d-5293-b72e-bd40fbb3f757",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "ba8c6276-4244-587e-8979-79e6a85c6684",
+  "tags": [
+    {
+      "name": "alcovia"
+    }
+  ]
+}

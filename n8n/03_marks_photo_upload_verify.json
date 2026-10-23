@@ -1,0 +1,207 @@
+{
+  "name": "03 Marks photo upload and advisor check",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "A student or parent uploads a photo of marks. AI reads it. The result is saved as UNVERIFIED and the advisor gets a ClickUp task.\nFamilies never see marks until an advisor verifies them in the weekly review.",
+        "height": 200,
+        "width": 420
+      },
+      "id": "a1bd1f44-23cf-5055-bb9c-5d8aa7912dc3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "alcovia/marks-upload",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e6b169c3-4d92-589b-a8d5-0bdd5dd4be25",
+      "name": "Photo uploaded",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://REPLACE_WITH_VISION_API/v1/extract",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ image_url: $json.body.image_url, instruction: \"Return JSON {subjects:[{subject, marks_pct}]} from this school marks sheet.\" }) }}",
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "34f13b03-d2c7-58a0-b4a9-229f78c11854",
+      "name": "Read the marks (AI vision)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const allowed = ['Maths','Physics','Chemistry','English','Social Science'];\nconst meta = $('Photo uploaded').first().json.body;\nconst rows = ($json.subjects || []).filter(s => allowed.includes(s.subject) && s.marks_pct >= 0 && s.marks_pct <= 100);\nif (!rows.length) throw new Error('Could not read any marks. Ask the family to retake the photo.');\nreturn rows.map(r => ({ json: { student_id: meta.student_id, exam_label: meta.exam_label, exam_date: meta.exam_date, subject: r.subject, marks_pct: r.marks_pct } }));"
+      },
+      "id": "17ff891d-e504-5ddb-8e19-8d1f574dbe57",
+      "name": "Check what was read",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO alcovia.exam_results (student_id, subject_id, exam_label, exam_date, marks_pct)\nSELECT $1, s.subject_id, $2, $3::date, $4 FROM alcovia.subjects s WHERE s.name = $5;",
+        "options": {
+          "queryReplacement": "={{ $json.student_id }},{{ $json.exam_label }},{{ $json.exam_date }},{{ $json.marks_pct }},{{ $json.subject }}"
+        }
+      },
+      "id": "b716d32b-f394-57ed-a799-80c1b89dfdbd",
+      "name": "Save as unverified",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        720,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "create",
+        "team": "REPLACE_WITH_WORKSPACE_ID",
+        "space": "REPLACE_WITH_SPACE_ID",
+        "folderless": true,
+        "list": "REPLACE_WITH_ADVISOR_LIST_ID",
+        "name": "=Verify marks: student {{ $('Photo uploaded').first().json.body.student_id }}, {{ $('Photo uploaded').first().json.body.exam_label }}",
+        "additionalFields": {
+          "content": "Marks were read from a photo. Check them against the sheet, then set verified_at.",
+          "priority": 3
+        }
+      },
+      "id": "c9112abf-b269-5713-aef4-4ec740b72c36",
+      "name": "Task for the advisor",
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        960,
+        0
+      ],
+      "credentials": {
+        "clickUpApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia ClickUp"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"ok\": true, \"message\": \"Thanks. Your advisor will check these and they will show up soon.\" } }}",
+        "options": {}
+      },
+      "id": "1d539e13-2450-5425-a33d-d84b911843cc",
+      "name": "Thanks",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Photo uploaded": {
+      "main": [
+        [
+          {
+            "node": "Read the marks (AI vision)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the marks (AI vision)": {
+      "main": [
+        [
+          {
+            "node": "Check what was read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check what was read": {
+      "main": [
+        [
+          {
+            "node": "Save as unverified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save as unverified": {
+      "main": [
+        [
+          {
+            "node": "Task for the advisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task for the advisor": {
+      "main": [
+        [
+          {
+            "node": "Thanks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "16c535d7-cd27-5563-8735-8d74d0906854",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "f56003e2-c5ca-5992-befc-04a57a0879ce",
+  "tags": [
+    {
+      "name": "alcovia"
+    }
+  ]
+}

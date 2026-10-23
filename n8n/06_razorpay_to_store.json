@@ -1,0 +1,261 @@
+{
+  "name": "06 Razorpay payments to store",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Razorpay webhook. Workshop seats (Rs 3,999 each) go to workshop_registrations. Program and trial invoices are marked paid.\nVerify the X-Razorpay-Signature header before trusting the body (add a Crypto node, or check it in your gateway).",
+        "height": 200,
+        "width": 420
+      },
+      "id": "a1bd1f44-23cf-5055-bb9c-5d8aa7912dc3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "alcovia/razorpay",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1c774ce4-b002-5757-83ac-c2692a813ea7",
+      "name": "Razorpay event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c273d4a3-c4ef-555d-9a28-e15891365951",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "payment.captured",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1fb5a058-fde2-54e1-b28b-9b5477c55555",
+      "name": "Captured?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c1d17fcb-5321-5690-9b30-26c85671f62a",
+              "leftValue": "={{ $json.body.payload.payment.entity.notes.kind }}",
+              "rightValue": "workshop",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1bfef2fc-54db-59b3-ba91-c9b63d0216d6",
+      "name": "Workshop seat?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO alcovia.workshop_registrations (workshop_id, campaign_id, seats, amount_inr, paid_at, razorpay_ref)\nVALUES (COALESCE((SELECT workshop_id FROM alcovia.workshop_events WHERE held_on >= CURRENT_DATE ORDER BY held_on LIMIT 1),\n                  (SELECT workshop_id FROM alcovia.workshop_events ORDER BY held_on DESC LIMIT 1)),\n        NULLIF($1, '')::int, $2, $3 / 100.0, now(), $4);",
+        "options": {
+          "queryReplacement": "={{ $json.body.payload.payment.entity.notes.campaign_id || '' }},{{ $json.body.payload.payment.entity.notes.seats || 1 }},{{ $json.body.payload.payment.entity.amount }},{{ $json.body.payload.payment.entity.id }}"
+        }
+      },
+      "id": "b22565fe-370c-54fa-83af-95d9b036bcd0",
+      "name": "Save workshop seats",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        720,
+        -80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE alcovia.invoices SET paid_on = CURRENT_DATE WHERE razorpay_ref = $1 AND paid_on IS NULL;",
+        "options": {
+          "queryReplacement": "={{ $json.body.payload.payment.entity.invoice_id }}"
+        }
+      },
+      "id": "16575bbd-8f0b-58bd-ae0c-aa3fdc31b0b6",
+      "name": "Mark invoice paid",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        720,
+        100
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"ok\": true } }}",
+        "options": {}
+      },
+      "id": "fc8c38b5-63db-5aae-9f4c-7c107086a463",
+      "name": "Received",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"ok\": true, \"ignored\": true } }}",
+        "options": {}
+      },
+      "id": "7aba8da3-f7b1-54c1-885a-873f9f284bb7",
+      "name": "Ignored",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Razorpay event": {
+      "main": [
+        [
+          {
+            "node": "Captured?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Captured?": {
+      "main": [
+        [
+          {
+            "node": "Workshop seat?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workshop seat?": {
+      "main": [
+        [
+          {
+            "node": "Save workshop seats",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark invoice paid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save workshop seats": {
+      "main": [
+        [
+          {
+            "node": "Received",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark invoice paid": {
+      "main": [
+        [
+          {
+            "node": "Received",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a2a20281-a45c-58fa-ba50-fb9f2a1a3883",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "0aa62786-5671-5bd0-a1d8-3bc708e4c781",
+  "tags": [
+    {
+      "name": "alcovia"
+    }
+  ]
+}

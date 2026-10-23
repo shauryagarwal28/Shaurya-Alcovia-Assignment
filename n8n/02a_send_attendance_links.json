@@ -1,0 +1,177 @@
+{
+  "name": "02a Send attendance links",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Runs every 5 minutes. For any session starting in the next 10 minutes, each student gets a link that opens only for that session.\nIn-person sessions also need the room code shown on the wall. The facilitator ticks anyone without a phone.",
+        "height": 200,
+        "width": 420
+      },
+      "id": "a1bd1f44-23cf-5055-bb9c-5d8aa7912dc3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/5 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "9b8385bb-88fe-553a-a833-19deabd01f25",
+      "name": "Every 5 minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT e.event_id, e.title, e.scheduled_at, st.student_id, st.full_name, g.phone\nFROM alcovia.program_events e\nJOIN alcovia.students st ON (e.student_id IS NULL OR e.student_id = st.student_id)\nJOIN alcovia.guardians g ON g.student_id = st.student_id\nWHERE e.held AND e.scheduled_at BETWEEN now() AND now() + interval '10 minutes'\n  AND NOT EXISTS (SELECT 1 FROM alcovia.attendance_links l WHERE l.event_id = e.event_id AND l.student_id = st.student_id);",
+        "options": {}
+      },
+      "id": "69420803-219f-59a5-b0c2-17a8da642d0d",
+      "name": "Sessions starting soon",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(i => {\n  const token = [...crypto.getRandomValues(new Uint8Array(18))].map(x => x.toString(16).padStart(2, '0')).join('');\n  const start = new Date(i.json.scheduled_at);\n  return { json: { ...i.json, token,\n    opens_at: new Date(start.getTime() - 5 * 60000).toISOString(), closes_at: new Date(start.getTime() + 3 * 3600000).toISOString() } };\n});"
+      },
+      "id": "706f50fb-d4cd-5205-a403-64d4084876c4",
+      "name": "Make a one-use token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO alcovia.attendance_links (event_id, student_id, token, opens_at, closes_at)\nVALUES ($1, $2, $3, $4, $5);",
+        "options": {
+          "queryReplacement": "={{ $json.event_id }},{{ $json.student_id }},{{ $json.token }},{{ $json.opens_at }},{{ $json.closes_at }}"
+        }
+      },
+      "id": "8ceaa377-7469-5518-a0a0-f02bfe971a38",
+      "name": "Save link",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        720,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://REPLACE_WITH_WHATSAPP_PROVIDER/messages",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ to: $json.phone, text: `${$json.full_name}, your ${$json.title} starts soon. Mark yourself present: https://REPLACE_APP_DOMAIN/attend/${$json.token}` }) }}",
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "57b842ab-312f-557b-8c33-ae73ff64dbd7",
+      "name": "Send on WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Every 5 minutes": {
+      "main": [
+        [
+          {
+            "node": "Sessions starting soon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sessions starting soon": {
+      "main": [
+        [
+          {
+            "node": "Make a one-use token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make a one-use token": {
+      "main": [
+        [
+          {
+            "node": "Save link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save link": {
+      "main": [
+        [
+          {
+            "node": "Send on WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5fe6de77-42df-57c3-9d6b-ac56da9ba95a",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "d52e4c31-99f9-58ed-9169-a5042f607ea8",
+  "tags": [
+    {
+      "name": "alcovia"
+    }
+  ]
+}

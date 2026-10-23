@@ -1,0 +1,145 @@
+{
+  "name": "07 Meta Ads weekly pull",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Monday morning. Pulls last 7 days of ad-level insights from the Meta Marketing API and upserts them per day.\nStart with this (or a manual export) from week 3. Automate fully once a month of numbers has been stable.",
+        "height": 200,
+        "width": 420
+      },
+      "id": "a1bd1f44-23cf-5055-bb9c-5d8aa7912dc3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "84fdc1b0-f58d-533c-9f4e-b987ddae5443",
+      "name": "Monday 06:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v19.0/act_REPLACE_AD_ACCOUNT_ID/insights?level=ad&time_increment=1&date_preset=last_7d&fields=ad_name,campaign_name,impressions,clicks,spend,frequency&limit=500",
+        "sendBody": false,
+        "specifyBody": "json",
+        "jsonBody": null,
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api"
+      },
+      "id": "f2ffbd37-d6f4-5544-8d38-3a5fcc1b579a",
+      "name": "Meta insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = ($json.data || []);\nreturn rows.map(r => ({ json: { day: r.date_start, ad_name: r.ad_name, campaign_name: r.campaign_name,\n  impressions: Number(r.impressions), clicks: Number(r.clicks), spend: Number(r.spend), frequency: Number(r.frequency) } }));"
+      },
+      "id": "06683177-a943-51a2-8d68-0519a581a097",
+      "name": "One row per ad per day",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH a AS (\n  SELECT asset_id FROM alcovia.ad_assets WHERE name = $2 LIMIT 1)\nINSERT INTO alcovia.ad_daily_metrics (day, asset_id, impressions, clicks, spend_inr, frequency)\nSELECT $1::date, a.asset_id, $3, $4, $5, $6 FROM a\nON CONFLICT (day, asset_id) DO UPDATE\nSET impressions = EXCLUDED.impressions, clicks = EXCLUDED.clicks, spend_inr = EXCLUDED.spend_inr, frequency = EXCLUDED.frequency;",
+        "options": {
+          "queryReplacement": "={{ $json.day }},{{ $json.ad_name }},{{ $json.impressions }},{{ $json.clicks }},{{ $json.spend }},{{ $json.frequency }}"
+        }
+      },
+      "id": "958e4a97-60ba-5b23-875d-fa5956a17eb2",
+      "name": "Upsert",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        720,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Monday 06:00": {
+      "main": [
+        [
+          {
+            "node": "Meta insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta insights": {
+      "main": [
+        [
+          {
+            "node": "One row per ad per day",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One row per ad per day": {
+      "main": [
+        [
+          {
+            "node": "Upsert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "582d00b4-d0fc-5408-9fe0-f4ac199aadbd",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "b47935ec-fc3d-50de-a9ee-6e7ed2f9d316",
+  "tags": [
+    {
+      "name": "alcovia"
+    }
+  ]
+}

@@ -1,0 +1,211 @@
+{
+  "name": "02b Mark attendance from a link",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "The student opens their link. It works only inside its time window, only once, and (in person) only with the room code.\nIf anything fails the student sees a plain message and the facilitator can still tick them by hand.",
+        "height": 200,
+        "width": 420
+      },
+      "id": "a1bd1f44-23cf-5055-bb9c-5d8aa7912dc3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "alcovia/attend",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "9c28ada8-ea5b-594c-95c3-21015a92b108",
+      "name": "Link opened",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT l.link_id, l.event_id, l.student_id,\n       (now() BETWEEN l.opens_at AND l.closes_at AND l.used_at IS NULL\n        AND (l.room_code_hash IS NULL OR l.room_code_hash = encode(sha256(convert_to($2, 'UTF8')), 'hex'))) AS ok\nFROM alcovia.attendance_links l WHERE l.token = $1;",
+        "options": {
+          "queryReplacement": "={{ $json.body.token }},{{ $json.body.room_code || '' }}"
+        }
+      },
+      "id": "fbb76650-bc23-5302-a438-f6fc904b6ebc",
+      "name": "Check the link",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "f7205e09-3492-5f86-a913-41abbb2e94d6",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3960e952-4d95-543c-9cc3-c7c9c8739b18",
+      "name": "Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH up AS (UPDATE alcovia.attendance_links SET used_at = now() WHERE link_id = $1)\nINSERT INTO alcovia.event_attendance (event_id, student_id, attended, marked_via)\nVALUES ($2, $3, true, 'link')\nON CONFLICT (event_id, student_id) DO UPDATE SET attended = true, marked_via = 'link';",
+        "options": {
+          "queryReplacement": "={{ $json.link_id }},{{ $json.event_id }},{{ $json.student_id }}"
+        }
+      },
+      "id": "53749578-fafb-55ad-9d45-08f8a554e063",
+      "name": "Mark present",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        720,
+        -80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Alcovia Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"ok\": true, \"message\": \"You are marked present.\" } }}",
+        "options": {}
+      },
+      "id": "c5f79b33-3294-5bde-a9e2-9f3f551b4c34",
+      "name": "Present",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"ok\": false, \"message\": \"This link has closed. Ask your facilitator to mark you.\" } }}",
+        "options": {}
+      },
+      "id": "fb19f633-6eae-5450-a5b9-6068a4b2370d",
+      "name": "Closed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        120
+      ]
+    }
+  ],
+  "connections": {
+    "Link opened": {
+      "main": [
+        [
+          {
+            "node": "Check the link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check the link": {
+      "main": [
+        [
+          {
+            "node": "Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid?": {
+      "main": [
+        [
+          {
+            "node": "Mark present",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Closed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark present": {
+      "main": [
+        [
+          {
+            "node": "Present",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bc107add-55c8-5176-af6c-c0b38d7ab02e",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "f4200395-c6fc-5796-85ef-732fac3b9a56",
+  "tags": [
+    {
+      "name": "alcovia"
+    }
+  ]
+}
